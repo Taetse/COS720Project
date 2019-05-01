@@ -53,6 +53,23 @@ def remove_stop_word(df):
     print(df.head()['CONTENT'])
 
 
+def lemmatize(df):
+    from nltk.stem.wordnet import WordNetLemmatizer
+    lmtzr = WordNetLemmatizer()
+    df['CONTENT'] = df['CONTENT'].apply(
+        lambda x: ' '.join([lmtzr.lemmatize(word, 'v') for word in x.split() ]))
+    print('-------Lemmazation--------')
+    print(df.head()['CONTENT'])
+
+
+def remove_mentions(df):
+    tag_pattern = re.compile(r'@[A-Za-z0-9]+')
+    df['CONTENT'] = df['CONTENT'].apply(
+        lambda x: tag_pattern.sub('', x))
+    print('-------Tag Removal--------')
+    print(df.head()['CONTENT'])
+
+
 def detect_language(df):
     from langdetect import detect
     df["CONTENT_LANGUAGE"] = df['CONTENT'].apply(
@@ -110,8 +127,9 @@ def main():
     # detect_language(df)
     count_emojis(df)
     remove_emojis(df)
-    remove_stop_word(df)
     resolve_slang_and_abbreviations(df)
+    remove_stop_word(df)
+    lemmatize(df)
 
 
 if __name__ == '__main__':

@@ -118,6 +118,14 @@ def remove_emojis(df):
     print(df.head()['CONTENT'])
 
 
+def to_lower(df):
+    df['WORD_COUNT'] = df['CONTENT'].apply(
+        lambda x: len(x.split()))
+
+    print('-------Word Count--------')
+    print(df.head()[['CONTENT', "WORD_COUNT"]])
+
+
 def main():
     df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
 
@@ -125,12 +133,13 @@ def main():
     print(df.head()["CONTENT"])
 
     # detect_language(df)
+    remove_mentions(df)
     count_emojis(df)
     remove_emojis(df)
     resolve_slang_and_abbreviations(df)
     remove_stop_word(df)
     lemmatize(df)
-
+    to_lower(df)
 
 if __name__ == '__main__':
     main()

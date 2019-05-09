@@ -159,7 +159,7 @@ def detect_face(url):
 
 
 def facial_recognition(df):
-    df['PFP_CONTAIN_FACE'] = df['CONTENT'].apply(
+    df['PFP_CONTAIN_FACE'] = df['PROFILE_IMAGE'].apply(
         lambda x: detect_face(x))
 
     print('-------Face Recognition--------')

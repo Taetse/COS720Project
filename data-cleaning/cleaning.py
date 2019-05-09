@@ -30,7 +30,7 @@ def translator(user_string):
     user_words = user_string.split(" ")
 
     # File path which consists of Abbreviations.
-    file_name = "D:/Documents/COS 720/COS720Project/data-cleaning/slang.txt"
+    file_name = "slang.txt"
     with open(file_name, "r") as abbreviations_csv:
         abbreviation_reader = csv.reader(abbreviations_csv, delimiter="=")
         abbreviations = {rows[0]: rows[1] for rows in abbreviation_reader}

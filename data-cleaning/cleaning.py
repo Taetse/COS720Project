@@ -2,6 +2,10 @@ import pandas as pd
 import csv
 import re
 from textblob import TextBlob
+import numpy as np
+import urllib
+import urllib.request
+import cv2 as cv
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
@@ -135,6 +139,33 @@ def get_sentiment(df):
     print(df.head()[['CONTENT', "SENTIMENT"]])
 
 
+def url_to_image(url):
+    resp = urllib.request.urlopen(url)
+    image = np.asarray(bytearray(resp.read()), dtype="uint8")
+    image = cv.imdecode(image, cv.IMREAD_COLOR)
+
+    return image
+
+
+def detect_face(url):
+    image = url_to_image(url)
+    grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    faceCascade = cv.CascadeClassifier(r'classifier.xml')
+    faces = faceCascade.detectMultiScale(grayscale_image)
+    if len(faces) > 0:
+        return True
+    else:
+        return False
+
+
+def facial_recognition(df):
+    df['PFP_CONTAIN_FACE'] = df['CONTENT'].apply(
+        lambda x: detect_face(x))
+
+    print('-------Face Recognition--------')
+    print(df.head()[['CONTENT', "PFP_CONTAIN_FACE"]])
+
+
 def main():
     df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
 
@@ -150,6 +181,7 @@ def main():
     lemmatize(df)
     to_lower(df)
     get_sentiment(df)
+    facial_recognition(df)
 
 
 if __name__ == '__main__':

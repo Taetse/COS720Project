@@ -148,7 +148,11 @@ def url_to_image(url):
 
 
 def detect_face(url):
-    image = url_to_image(url)
+    try:
+        image = url_to_image(url)
+    except urllib.error.HTTPError:
+        return False
+
     grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     faceCascade = cv.CascadeClassifier(r'classifier.xml')
     faces = faceCascade.detectMultiScale(grayscale_image)

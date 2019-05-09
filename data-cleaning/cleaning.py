@@ -1,6 +1,7 @@
-import numpy as np,pandas as pd
+import pandas as pd
 import csv
 import re
+from textblob import TextBlob
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
@@ -126,6 +127,14 @@ def to_lower(df):
     print(df.head()[['CONTENT', "WORD_COUNT"]])
 
 
+def get_sentiment(df):
+    df['SENTIMENT'] = df['CONTENT'].apply(
+        lambda x: TextBlob(x).sentiment.polarity)
+
+    print('-------Sentiment Analysis--------')
+    print(df.head()[['CONTENT', "SENTIMENT"]])
+
+
 def main():
     df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
 
@@ -140,6 +149,8 @@ def main():
     remove_stop_word(df)
     lemmatize(df)
     to_lower(df)
+    get_sentiment(df)
+
 
 if __name__ == '__main__':
     main()

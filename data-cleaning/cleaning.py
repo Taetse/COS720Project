@@ -1,11 +1,13 @@
-import pandas as pd
 import csv
 import re
-from textblob import TextBlob
-import numpy as np
 import urllib
 import urllib.request
+
 import cv2 as cv
+import numpy as np
+import pandas as pd
+from pyagender import PyAgender
+from textblob import TextBlob
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
@@ -62,7 +64,7 @@ def lemmatize(df):
     from nltk.stem.wordnet import WordNetLemmatizer
     lmtzr = WordNetLemmatizer()
     df['CONTENT'] = df['CONTENT'].apply(
-        lambda x: ' '.join([lmtzr.lemmatize(word, 'v') for word in x.split() ]))
+        lambda x: ' '.join([lmtzr.lemmatize(word, 'v') for word in x.split()]))
     print('-------Lemmazation--------')
     print(df.head()['CONTENT'])
 
@@ -86,23 +88,23 @@ def detect_language(df):
 
 def construct_emoji_pattern():
     return re.compile("["
-                               u"\U0001F600-\U0001F64F"  # emoticons
-                               u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                               u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                               u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                               u"\U00002702-\U000027B0"
-                               u"\U000024C2-\U0001F251"
-                               u"\U0001f926-\U0001f937"
-                               u'\U00010000-\U0010ffff'
-                               u"\u200d"
-                               u"\u2640-\u2642"
-                               u"\u2600-\u2B55"
-                               u"\u23cf"
-                               u"\u23e9"
-                               u"\u231a"
-                               u"\u3030"
-                               u"\ufe0f"
-                               "]+", flags=re.UNICODE)
+                      u"\U0001F600-\U0001F64F"  # emoticons
+                      u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                      u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                      u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                      u"\U00002702-\U000027B0"
+                      u"\U000024C2-\U0001F251"
+                      u"\U0001f926-\U0001f937"
+                      u'\U00010000-\U0010ffff'
+                      u"\u200d"
+                      u"\u2640-\u2642"
+                      u"\u2600-\u2B55"
+                      u"\u23cf"
+                      u"\u23e9"
+                      u"\u231a"
+                      u"\u3030"
+                      u"\ufe0f"
+                      "]+", flags=re.UNICODE)
 
 
 def count_emojis(df):
@@ -154,7 +156,7 @@ def detect_face(url):
         return False
 
     grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    faceCascade = cv.CascadeClassifier(r'classifier.xml')
+    faceCascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
     faces = faceCascade.detectMultiScale(grayscale_image)
     if len(faces) > 0:
         return True
@@ -170,9 +172,24 @@ def facial_recognition(df):
     print(df.head()[['CONTENT', "PFP_CONTAIN_FACE"]])
 
 
-def main():
-    df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
+def get_estimate_age(url):
+    agender = PyAgender()
+    image = url_to_image(url)
+    faces = agender.detect_genders_ages(image)
+    return round(faces[0]['age'])
 
+
+def estimate_age(df):
+    df['ESTIMATE_AGE'] = df.loc[df['PFP_CONTAIN_FACE'] == 'True']['PROFILE_IMAGE'].apply(
+        lambda x: get_estimate_age(x))
+
+    print('-------Estimate Age--------')
+    print(df.head()[['CONTENT', "ESTIMATE_AGE"]])
+
+
+def main():
+    df = read_from_csv(r"C:\Users\myron\Downloads\shortened-data.csv")
+    
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
@@ -186,6 +203,7 @@ def main():
     to_lower(df)
     get_sentiment(df)
     facial_recognition(df)
+    estimate_age(df)
 
 
 if __name__ == '__main__':

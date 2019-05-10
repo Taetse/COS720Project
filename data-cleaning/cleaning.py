@@ -1,6 +1,11 @@
-import numpy as np,pandas as pd
+import pandas as pd
 import csv
 import re
+from textblob import TextBlob
+import numpy as np
+import urllib
+import urllib.request
+import cv2 as cv
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
@@ -29,7 +34,7 @@ def translator(user_string):
     user_words = user_string.split(" ")
 
     # File path which consists of Abbreviations.
-    file_name = "D:/Documents/COS 720/COS720Project/data-cleaning/slang.txt"
+    file_name = "slang.txt"
     with open(file_name, "r") as abbreviations_csv:
         abbreviation_reader = csv.reader(abbreviations_csv, delimiter="=")
         abbreviations = {rows[0]: rows[1] for rows in abbreviation_reader}
@@ -126,6 +131,45 @@ def to_lower(df):
     print(df.head()[['CONTENT', "WORD_COUNT"]])
 
 
+def get_sentiment(df):
+    df['SENTIMENT'] = df['CONTENT'].apply(
+        lambda x: TextBlob(x).sentiment.polarity)
+
+    print('-------Sentiment Analysis--------')
+    print(df.head()[['CONTENT', "SENTIMENT"]])
+
+
+def url_to_image(url):
+    resp = urllib.request.urlopen(url)
+    image = np.asarray(bytearray(resp.read()), dtype="uint8")
+    image = cv.imdecode(image, cv.IMREAD_COLOR)
+
+    return image
+
+
+def detect_face(url):
+    try:
+        image = url_to_image(url)
+    except urllib.error.HTTPError:
+        return False
+
+    grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    faceCascade = cv.CascadeClassifier(r'classifier.xml')
+    faces = faceCascade.detectMultiScale(grayscale_image)
+    if len(faces) > 0:
+        return True
+    else:
+        return False
+
+
+def facial_recognition(df):
+    df['PFP_CONTAIN_FACE'] = df['PROFILE_IMAGE'].apply(
+        lambda x: detect_face(x))
+
+    print('-------Face Recognition--------')
+    print(df.head()[['CONTENT', "PFP_CONTAIN_FACE"]])
+
+
 def main():
     df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
 
@@ -140,6 +184,9 @@ def main():
     remove_stop_word(df)
     lemmatize(df)
     to_lower(df)
+    get_sentiment(df)
+    facial_recognition(df)
+
 
 if __name__ == '__main__':
     main()

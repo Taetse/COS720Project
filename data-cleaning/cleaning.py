@@ -1,6 +1,7 @@
 import numpy as np,pandas as pd
 import csv
 import re
+import html
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
@@ -8,7 +9,7 @@ pd.set_option('max_colwidth', -1)
 
 
 def read_from_csv(file_name: str):
-    df = pd.read_csv(file_name, sep=',', quotechar='\"', escapechar='\\', error_bad_lines=False, skipinitialspace=True)
+    df = pd.read_csv(file_name, encoding='utf-8', sep=',', quotechar='\"', escapechar='\\', error_bad_lines=False, skipinitialspace=True)
     return df
 
 
@@ -29,7 +30,7 @@ def translator(user_string):
     user_words = user_string.split(" ")
 
     # File path which consists of Abbreviations.
-    file_name = "D:/Documents/COS 720/COS720Project/data-cleaning/slang.txt"
+    file_name = "D:\\UP\\COS\\720\\repo\\COS720\\data-cleaning\\slang.txt"
     with open(file_name, "r") as abbreviations_csv:
         abbreviation_reader = csv.reader(abbreviations_csv, delimiter="=")
         abbreviations = {rows[0]: rows[1] for rows in abbreviation_reader}
@@ -44,7 +45,10 @@ def translator(user_string):
 
 
 def remove_stop_word(df):
+    import nltk
+    nltk.download('stopwords')
     from nltk.corpus import stopwords
+    
     stop = stopwords.words("english")
     df['CONTENT'] = df['CONTENT'].apply(
         lambda x: ' '.join([word for word in x.split() if word not in stop]))
@@ -125,18 +129,74 @@ def to_lower(df):
     print('-------Word Count--------')
     print(df.head()[['CONTENT', "WORD_COUNT"]])
 
+# leos shit
+def extract_URLs(df):
+    print("Extracting urls")
+    def extract_loop(tweet):
+        URLarray = []
+        URL = re.search(r"(?P<url>https?://[^\s\"]+)", tweet)
+        while URL != None:
+            URLarray.append(URL.group("url"))
+            tweet = re.sub(r"http\S+", "",tweet, 1)
+            URL = re.search(r"(?P<url>https?://[^\s\"]+)", tweet)
+        return URLarray
+    df["URL_LIST"] = df["CONTENT"].apply(
+        lambda x: extract_loop(x)
+    )
+    df["CONTENT"] = df["CONTENT"].apply(
+        lambda x: re.sub(r"http\S+", "", x, 0)
+    )
+    print(df.head()[['CONTENT', "URL_LIST"]])
+
+# not sure if needed
+def escape_HTML(df):
+    print("unescaping HTML chars")
+    df["CONTENT"] = df["CONTENT"].apply(
+        lambda x: html.unescape(x)
+    )
+    print(df.head()['CONTENT'])
+
+def remove_punctuation(df):
+    import string
+    print("removing punctuation")
+    df["CONTENT"]  = df["CONTENT"].apply(
+        lambda x: "".join([char for char in x if char not in string.punctuation])
+    )
+    # tweet = re.sub('[0-9]+', '', tweet)
+    print(df.head()['CONTENT'])
+
+def remove_apostrophes(df):
+    import apostrophes
+    print("Removing apostrophes")
+    df['CONTENT'] = df['CONTENT'].apply(
+        lambda x: "".join([apostrophes.contractions[word]+" " if word in apostrophes.contractions else word+" " for word in x.split()])
+    )
+    print(df.head()['CONTENT'])
+
+def checkSpelling(df):
+    from spellchecker import SpellChecker 
+    print("checking spelling")
+    spell = SpellChecker(distance=10) 
+    df["CONTENT"] = df["CONTENT"].apply(
+        lambda x: "".join([spell.correction(word)+' ' for word in x.split()])
+    )
 
 def main():
-    df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
+    df = read_from_csv(r"D:\UP\COS\720\repo\shortened-data.csv")
 
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
     # detect_language(df)
+    escape_HTML(df) # not sure if needed
     remove_mentions(df)
     count_emojis(df)
     remove_emojis(df)
+    extract_URLs(df)
+    remove_apostrophes(df)
+    remove_punctuation(df)
     resolve_slang_and_abbreviations(df)
+    # checkSpelling(df) # expensive task
     remove_stop_word(df)
     lemmatize(df)
     to_lower(df)

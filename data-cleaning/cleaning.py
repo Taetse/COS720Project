@@ -10,6 +10,9 @@ import pandas as pd
 from pyagender import PyAgender
 from textblob import TextBlob
 
+from sklearn import datasets
+from sklearn.cluster import KMeans
+
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('max_colwidth', -1)
@@ -136,6 +139,7 @@ def to_lower(df):
     print('-------Word Count--------')
     print(df.head()[['CONTENT', "WORD_COUNT"]])
 
+
 # leos shit
 def extract_URLs(df):
     print("Extracting urls")
@@ -155,6 +159,7 @@ def extract_URLs(df):
     )
     print(df.head()[['CONTENT', "URL_LIST"]])
 
+
 # not sure if needed
 def escape_HTML(df):
     print("unescaping HTML chars")
@@ -162,6 +167,7 @@ def escape_HTML(df):
         lambda x: html.unescape(x)
     )
     print(df.head()['CONTENT'])
+
 
 def remove_punctuation(df):
     import string
@@ -172,6 +178,7 @@ def remove_punctuation(df):
     # tweet = re.sub('[0-9]+', '', tweet)
     print(df.head()['CONTENT'])
 
+
 def remove_apostrophes(df):
     import apostrophes
     print("Removing apostrophes")
@@ -180,6 +187,7 @@ def remove_apostrophes(df):
     )
     print(df.head()['CONTENT'])
 
+
 def checkSpelling(df):
     from spellchecker import SpellChecker 
     print("checking spelling")
@@ -187,6 +195,7 @@ def checkSpelling(df):
     df["CONTENT"] = df["CONTENT"].apply(
         lambda x: "".join([spell.correction(word)+' ' for word in x.split()])
     )
+
 
 def get_sentiment(df):
     df['SENTIMENT'] = df['CONTENT'].apply(
@@ -211,8 +220,8 @@ def detect_face(url):
         return False
 
     grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    faceCascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
-    faces = faceCascade.detectMultiScale(grayscale_image)
+    face_cascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
+    faces = face_cascade.detectMultiScale(grayscale_image)
     if len(faces) > 0:
         return True
     else:
@@ -242,14 +251,28 @@ def estimate_age(df):
     print(df.head()[['CONTENT', "ESTIMATE_AGE"]])
 
 
+def k_means_prediction(df):
+    # Declaring Model
+    model = KMeans(n_clusters=2)
+    # Fitting Model
+    # model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "WORD_COUNT", "EMOJI_COUNT", "CONTENT_LANGUAGE"]])
+    model.fit(df[["SENTIMENT", "WORD_COUNT", "EMOJI_COUNT"]])
+
+    df['CLUSTER'] = df.apply(
+        lambda x: model.predict([[x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"]]]), axis=1)
+
+    print('-------K Means Clusters--------')
+    print(df.head()[['CONTENT', "CLUSTER"]])
+
+
 def main():
-    df = read_from_csv(r"D:\UP\COS\720\repo\shortened-data.csv")
+    df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
     
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
-    # detect_language(df)
-    escape_HTML(df) # not sure if needed
+    # detect_language(df)  #expensive task
+    escape_HTML(df)  # not sure if needed
     remove_mentions(df)
     count_emojis(df)
     remove_emojis(df)
@@ -257,13 +280,14 @@ def main():
     remove_apostrophes(df)
     remove_punctuation(df)
     resolve_slang_and_abbreviations(df)
-    # checkSpelling(df) # expensive task
+    # checkSpelling(df)  # expensive task
     remove_stop_word(df)
     lemmatize(df)
     to_lower(df)
     get_sentiment(df)
-    facial_recognition(df)
-    estimate_age(df)
+    # facial_recognition(df)
+    # estimate_age(df)
+    k_means_prediction(df)
 
 
 if __name__ == '__main__':

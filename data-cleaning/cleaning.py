@@ -4,7 +4,7 @@ import html
 import urllib
 import urllib.request
 
-import cv2 as cv 
+import cv2 as cv
 import numpy as np
 import pandas as pd
 from pyagender import PyAgender
@@ -55,7 +55,7 @@ def remove_stop_word(df):
     import nltk
     nltk.download('stopwords')
     from nltk.corpus import stopwords
-    
+
     stop = stopwords.words("english")
     df['CONTENT'] = df['CONTENT'].apply(
         lambda x: ' '.join([word for word in x.split() if word not in stop]))
@@ -137,14 +137,17 @@ def to_lower(df):
     print(df.head()[['CONTENT', "WORD_COUNT"]])
 
 # leos shit
+
+
 def extract_URLs(df):
     print("Extracting urls")
+
     def extract_loop(tweet):
         URLarray = []
         URL = re.search(r"(?P<url>https?://[^\s\"]+)", tweet)
         while URL != None:
             URLarray.append(URL.group("url"))
-            tweet = re.sub(r"http\S+", "",tweet, 1)
+            tweet = re.sub(r"http\S+", "", tweet, 1)
             URL = re.search(r"(?P<url>https?://[^\s\"]+)", tweet)
         return URLarray
     df["URL_LIST"] = df["CONTENT"].apply(
@@ -156,6 +159,8 @@ def extract_URLs(df):
     print(df.head()[['CONTENT', "URL_LIST"]])
 
 # not sure if needed
+
+
 def escape_HTML(df):
     print("unescaping HTML chars")
     df["CONTENT"] = df["CONTENT"].apply(
@@ -163,14 +168,16 @@ def escape_HTML(df):
     )
     print(df.head()['CONTENT'])
 
+
 def remove_punctuation(df):
     import string
     print("removing punctuation")
-    df["CONTENT"]  = df["CONTENT"].apply(
+    df["CONTENT"] = df["CONTENT"].apply(
         lambda x: "".join([char for char in x if char not in string.punctuation])
     )
     # tweet = re.sub('[0-9]+', '', tweet)
     print(df.head()['CONTENT'])
+
 
 def remove_apostrophes(df):
     import apostrophes
@@ -180,13 +187,15 @@ def remove_apostrophes(df):
     )
     print(df.head()['CONTENT'])
 
+
 def checkSpelling(df):
-    from spellchecker import SpellChecker 
+    from spellchecker import SpellChecker
     print("checking spelling")
-    spell = SpellChecker(distance=10) 
+    spell = SpellChecker(distance=10)
     df["CONTENT"] = df["CONTENT"].apply(
         lambda x: "".join([spell.correction(word)+' ' for word in x.split()])
     )
+
 
 def get_sentiment(df):
     df['SENTIMENT'] = df['CONTENT'].apply(
@@ -209,6 +218,8 @@ def detect_face(url):
         image = url_to_image(url)
     except urllib.error.HTTPError:
         return False
+    except urllib.error.URLError:
+        return False
 
     grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     faceCascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
@@ -228,10 +239,19 @@ def facial_recognition(df):
 
 
 def get_estimate_age(url):
+    try:
+        image = url_to_image(url)
+    except urllib.error.HTTPError:
+        return False
+    except urllib.error.URLError:
+        return False
+
     agender = PyAgender()
-    image = url_to_image(url)
     faces = agender.detect_genders_ages(image)
-    return round(faces[0]['age'])
+    if len(faces) > 0:
+        return round(faces[0]['age'])
+    else:
+        return 0
 
 
 def estimate_age(df):
@@ -243,28 +263,27 @@ def estimate_age(df):
 
 
 def main():
-    df = read_from_csv(r"D:\UP\COS\720\repo\shortened-data.csv")
-    
+    df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
+
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
     # detect_language(df)
-    escape_HTML(df) # not sure if needed
-    remove_mentions(df)
-    count_emojis(df)
-    remove_emojis(df)
-    extract_URLs(df)
-    remove_apostrophes(df)
-    remove_punctuation(df)
-    resolve_slang_and_abbreviations(df)
+    # escape_HTML(df)  # not sure if needed
+    # remove_mentions(df)
+    # count_emojis(df)
+    # remove_emojis(df)
+    # extract_URLs(df)
+    # remove_apostrophes(df)
+    # remove_punctuation(df)
+    # resolve_slang_and_abbreviations(df)
     # checkSpelling(df) # expensive task
-    remove_stop_word(df)
-    lemmatize(df)
-    to_lower(df)
-    get_sentiment(df)
-    facial_recognition(df)
-    estimate_age(df)
-
+    # remove_stop_word(df)
+    # lemmatize(df)
+    # to_lower(df)
+    # get_sentiment(df)
+    # facial_recognition(df)
+    # estimate_age(df)
 
 if __name__ == '__main__':
     main()

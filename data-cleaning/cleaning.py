@@ -10,6 +10,9 @@ import pandas as pd
 from pyagender import PyAgender
 from textblob import TextBlob
 
+from sklearn import datasets
+from sklearn.cluster import KMeans
+
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('max_colwidth', -1)
@@ -136,6 +139,7 @@ def to_lower(df):
     print('-------Word Count--------')
     print(df.head()[['CONTENT', "WORD_COUNT"]])
 
+
 # leos shit
 
 
@@ -157,6 +161,7 @@ def extract_URLs(df):
         lambda x: re.sub(r"http\S+", "", x, 0)
     )
     print(df.head()[['CONTENT', "URL_LIST"]])
+
 
 # not sure if needed
 
@@ -222,8 +227,8 @@ def detect_face(url):
         return False
 
     grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    faceCascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
-    faces = faceCascade.detectMultiScale(grayscale_image)
+    face_cascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
+    faces = face_cascade.detectMultiScale(grayscale_image)
     if len(faces) > 0:
         return True
     else:
@@ -262,28 +267,44 @@ def estimate_age(df):
     print(df.head()[['CONTENT', "ESTIMATE_AGE"]])
 
 
-def main():
-    df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
+def k_means_prediction(df):
+    # Declaring Model
+    model = KMeans(n_clusters=2)
+    # Fitting Model
+    # model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "WORD_COUNT", "EMOJI_COUNT", "CONTENT_LANGUAGE"]])
+    model.fit(df[["SENTIMENT", "WORD_COUNT", "EMOJI_COUNT"]])
 
+    df['CLUSTER'] = df.apply(
+        lambda x: model.predict([[x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"]]]), axis=1)
+
+    print('-------K Means Clusters--------')
+    print(df.head()[['CONTENT', "CLUSTER"]])
+
+
+def main():
+    df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
+    
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
-    # detect_language(df)
-    # escape_HTML(df)  # not sure if needed
-    # remove_mentions(df)
-    # count_emojis(df)
-    # remove_emojis(df)
-    # extract_URLs(df)
-    # remove_apostrophes(df)
-    # remove_punctuation(df)
-    # resolve_slang_and_abbreviations(df)
-    # checkSpelling(df) # expensive task
-    # remove_stop_word(df)
-    # lemmatize(df)
-    # to_lower(df)
-    # get_sentiment(df)
+    # detect_language(df)  #expensive task
+    escape_HTML(df)  # not sure if needed
+    remove_mentions(df)
+    count_emojis(df)
+    remove_emojis(df)
+    extract_URLs(df)
+    remove_apostrophes(df)
+    remove_punctuation(df)
+    resolve_slang_and_abbreviations(df)
+    # checkSpelling(df)  # expensive task
+    remove_stop_word(df)
+    lemmatize(df)
+    to_lower(df)
+    get_sentiment(df)
     # facial_recognition(df)
     # estimate_age(df)
+    k_means_prediction(df)
+
 
 if __name__ == '__main__':
     main()

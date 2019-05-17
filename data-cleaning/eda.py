@@ -1,16 +1,17 @@
-import cleaning
 import collections as coll
 
+# Tweets
 def most_common_words(df):
     all_words = []
-    for row in df.head().iterrows():
-        content = row['CONTENT']
+    for row in df.iterrows():
+        content = row[1]['CONTENT']
         words = content.split()
         for word in words:
             all_words.append(word.lower())
     
     return coll.Counter(words).most_common(25)
 
+# Tweets
 def friends_followers_profile_picture(df):
     count = 0
     out = {
@@ -19,88 +20,123 @@ def friends_followers_profile_picture(df):
         "followers_face" : 0,
         "followers_no_face" : 0
     }
-    for row in df.head().iterrows():
+    for row in df.iterrows():
         count += 1
-        if row['PFP_CONTAIN_FACE'] == True:
-            out['friends_face'] += row['FRIENDS_COUNT']
-            out['followers_face'] += row['FOLLOWERS_COUNT']
+        if row[1]['PFP_CONTAIN_FACE'] == True:
+            out['friends_face'] += row[1]['FRIENDS_COUNT']
+            out['followers_face'] += row[1]['FOLLOWERS_COUNT']
         else:
-            out['friends_no_face'] += row['FRIENDS_COUNT']
-            out['followers_no_face'] += row['FOLLOWERS_COUNT']
+            out['friends_no_face'] += row[1]['FRIENDS_COUNT']
+            out['followers_no_face'] += row[1]['FOLLOWERS_COUNT']
 
     return out
 
+# Tweets
 def count_non_matching_languages(df):
     out = {
         "matching" : 0,
         "non-matching" : 0
     }
-    for row in df.head().iterrows():
-        if row['LANGUAGE'] == row['CONTENT_LANGUAGE']:
+    for row in df.iterrows():
+        if row[1]['LANGUAGE'] == row[1]['CONTENT_LANGUAGE']:
             out['matching'] += 1
         else:
             out['non-matching'] += 1
     
     return out
 
+# Tweets
 def sentiment_frequency(df):
     out = {
         "positive" : 0,
         "negative" : 0,
         "no_content" : 0
     }
-    for row in df.head().iterrows():
-        if row['SENTIMENT'] == 1:
+    for row in df.iterrows():
+        if row[1]['SENTIMENT'] == 1:
             out['positive'] += 1
-        elif row['SENTIMENT'] == 0:
+        elif row[1]['SENTIMENT'] == 0:
             out['no_content'] += 1
-        elif row['SENTIMENT'] == -1:
+        elif row[1]['SENTIMENT'] == -1:
             out['negative'] += 1
 
     return out
 
+# Tweets
 def sentiment_retweet_count(df):
     out = {
         "positive" : 0,
         "negative": 0
     }
-    for row in df.head().iterrows():
+    for row in df.iterrows():
         if row['SENTIMENT'] == 1:
-            out['positive'] += row['RETWEET']
+            out['positive'] += row[1]['RETWEET']
         else:
-            out['negative'] += row['RETWEET']
+            out['negative'] += row[1]['RETWEET']
 
     return out
 
+# Tweets
 def sentiment_word_count_distribution(df):
-    out = {
-        "positive" : 0,
-        "negative": 0
-    }
-    for row in df.head().iterrows():
-        if row[1]['SENTIMENT'] > 0:
-            out['positive'] += row[1]['WORD_COUNT']
-        elif row[1]['SENTIMENT'] < 0:
-            out['negative'] += row[1]['WORD_COUNT']
-    print(out)
-    return out
-
-def sentiment_emoji_count_distribution(df):
-    out = {
-        "positive" : 0,
-        "negative": 0
-    }
+    out = {}
     for row in df.iterrows():
         if row[1]['SENTIMENT'] > 0:
-            out['positive'] += row[1]['EMOJI_COUNT']
+            if row[1]['WORD_COUNT'] in out:
+                out[row[1]['WORD_COUNT']]['positive'] += 1
+            else:
+                out[row[1]['WORD_COUNT']] = {}
+                out[row[1]['WORD_COUNT']]['positive'] += 1
         elif row[1]['SENTIMENT'] < 0:
-            out['negative'] += row[1]['EMOJI_COUNT']
-    print(out)
+            if row[1]['WORD_COUNT'] in out:
+                out[row[1]['WORD_COUNT']]['negative'] += 1
+            else:
+                out[row[1]['WORD_COUNT']] = {}
+                out[row[1]['WORD_COUNT']]['negative'] += 1
+
     return out
 
-def sentiment_common_word_distribution(df):
-    print("NOT IMPLEMENTED")
+# Tweets
+def sentiment_emoji_count_distribution(df):
+    out = {}
+    for row in df.iterrows():
+        if row[1]['SENTIMENT'] > 0:
+            if row[1]['EMOJI_COUNT'] in out:
+                out[row[1]['EMOJI_COUNT']]['positive'] += 1
+            else:
+                out[row[1]['EMOJI_COUNT']] = {}
+                out[row[1]['EMOJI_COUNT']]['positive'] += 1
+        elif row[1]['SENTIMENT'] < 0:
+            if row[1]['EMOJI_COUNT'] in out:
+                out[row[1]['EMOJI_COUNT']]['negative'] += 1
+            else:
+                out[row[1]['EMOJI_COUNT']] = {}
+                out[row[1]['EMOJI_COUNT']]['negative'] += 1
 
+    return out
+
+# Tweets
+def sentiment_common_word_distribution(df, words):
+    out = {}
+    for row in df.iterrows():
+        content = row[1]['CONTENT']
+        for word in words:
+            if word in content:
+                if row[1]['SENTIMENT'] > 0:
+                    if word in out:
+                        out[word]['positive'] += 1
+                    else: 
+                        out[word] = {}
+                        out[word]['positive'] += 1
+                elif row[1]['SENTIMENT'] < 0:
+                    if word in out:
+                        out[word]['negative'] += 1
+                    else: 
+                        out[word] = {}
+                        out[word]['negative'] += 1
+
+    return out
+
+# Tweets
 def profile_age_follower_distribution(df):
     def get_profile_age(df):
         from dateutil import parser

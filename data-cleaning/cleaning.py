@@ -244,32 +244,48 @@ def get_sentiment(df):
 
 
 def main():
-    dfTweets = read_from_csv(r"D:\UP\COS\720\repo\shortened-data.csv")
-    dfUsers = read_from_csv(r"D:\UP\COS\720\repo\user-data.csv")
+    # dfTweets = read_from_csv(r"D:\UP\COS\720\repo\shortened-data.csv")
+    # dfUsers = read_from_csv(r"D:\UP\COS\720\repo\user-data.csv")
     
-    print("--- Print the Head of the data ---")
-    print(dfTweets.head()["CONTENT"])
+    # print("--- Print the Head of the data ---")
+    # print(dfTweets.head()["CONTENT"])
 
     # detect_language(dfTweets)
-    escape_HTML(dfTweets) # not sure if needed
-    remove_mentions(dfTweets)
-    count_emojis(dfTweets)
-    remove_emojis(dfTweets)
-    extract_URLs(dfTweets)
-    remove_apostrophes(dfTweets)
-    remove_punctuation(dfTweets)
-    resolve_slang_and_abbreviations(dfTweets)
+    # escape_HTML(dfTweets) # not sure if needed
+    # remove_mentions(dfTweets)
+    # count_emojis(dfTweets)
+    # remove_emojis(dfTweets)
+    # extract_URLs(dfTweets)
+    # remove_apostrophes(dfTweets)
+    # remove_punctuation(dfTweets)
+    # resolve_slang_and_abbreviations(dfTweets)
     # checkSpelling(dfTweets) # expensive task
-    remove_stop_word(dfTweets)
-    lemmatize(dfTweets)
-    to_lower(dfTweets)
-    get_sentiment(dfTweets)
+    # remove_stop_word(dfTweets)
+    # lemmatize(dfTweets)
+    # to_lower(dfTweets)
+    # get_sentiment(dfTweets)
     # facial_recognition(dfTweets)
     # estimate_age(dfTweets)
 
-    eda.sentiment_emoji_count_distribution(dfTweets)
-    # userdata calculations
-    # eda.profile_age_follower_distribution(dfUsers)
+    #EDA TWEETS
+
+    df = read_from_csv(r"G:\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
+
+    commonWords = eda.most_common_words(dfTweets)
+    print(words)
+    print(eda.friends_followers_profile_picture(df))
+    print(eda.count_non_matching_languages(df))
+    print(eda.sentiment_frequency(df))
+    print(eda.sentiment_retweet_count(df))
+    print(eda.sentiment_word_count_distribution(df))
+    print(eda.sentiment_emoji_count_distribution(df))
+
+    words = []
+    for w in commonWords:
+        words.append(w[0])
+
+    print(eda.sentiment_common_word_distribution(df, words))
+    print(eda.profile_age_follower_distribution(df))
 
 if __name__ == '__main__':
     main()

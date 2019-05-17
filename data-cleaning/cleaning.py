@@ -302,9 +302,9 @@ def is_tweet_language_profile_language(df):
 
 
 def getTimeDifference(firstTime, secondTime):
-    FMT = "%Y-%m-%d %H:%m:%S"
+    FMT = '%Y-%m-%d %H:%M:%S.%f0000'
     print(firstTime + " - " + secondTime)
-    datetime.strptime(firstTime, FMT) - datetime.strptime(secondTime, FMT)
+    return datetime.strptime(firstTime, FMT) - datetime.strptime(secondTime, FMT)
 
 
 def time_after_profile_creation(df):
@@ -316,32 +316,33 @@ def time_after_profile_creation(df):
 
 
 def main():
+    # df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
     df = read_from_csv(r"C:\Users\myron\Downloads\shortened-data.csv")
 
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
     detect_language(df)  # expensive task
-    # escape_HTML(df)  # not sure if needed
-    # remove_mentions(df)
-    # count_emojis(df)
-    # remove_emojis(df)
-    # extract_URLs(df)
-    # remove_apostrophes(df)
-    # remove_punctuation(df)
-    # resolve_slang_and_abbreviations(df)
-    # # checkSpelling(df)  # expensive task
-    # remove_stop_word(df)
-    # lemmatize(df)
-    # to_lower(df)
-    # get_sentiment(df)
-    # # facial_recognition(df)
-    # # estimate_age(df)
-    # k_means_prediction(df)
+    escape_HTML(df)  # not sure if needed
+    remove_mentions(df)
+    count_emojis(df)
+    remove_emojis(df)
+    extract_URLs(df)
+    remove_apostrophes(df)
+    remove_punctuation(df)
+    resolve_slang_and_abbreviations(df)
+    # checkSpelling(df)  # expensive task
+    remove_stop_word(df)
+    lemmatize(df)
+    to_lower(df)
+    get_sentiment(df)
+    facial_recognition(df)
+    estimate_age(df)
+    k_means_prediction(df)
     is_tweet_language_profile_language(df)
     time_after_profile_creation(df)
 
-    df.to_csv(r'results.csv')
+    # df.to_csv(r'results.csv')
 
 
 if __name__ == '__main__':

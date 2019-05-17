@@ -316,7 +316,7 @@ def time_after_profile_creation(df):
 
 
 def main():
-    df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
+    df = read_from_csv(r"C:\Users\myron\Downloads\test-data.csv")
     # df = read_from_csv(r"C:\Users\myron\Downloads\results.csv")
 
     print("--- Print the Head of the data ---")

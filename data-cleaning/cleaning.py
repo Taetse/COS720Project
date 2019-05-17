@@ -276,7 +276,9 @@ def k_means_prediction(df):
     # Declaring Model
     model = KMeans(n_clusters=2)
     # Fitting Model
-    # model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "ESTIMATE_AGE", "WORD_COUNT", "EMOJI_COUNT", "CONTENT_LANGUAGE"]])
+    # model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "ESTIMATE_AGE", "WORD_COUNT", "EMOJI_COUNT", "CONTENT_LANGUAGE",
+    # "TIME_AFTER_PFP_CREATION", "TWEET_LANG_SAME_PROFILE_LANG", "SOURCE", "IS_DEFAULT_PROFILE", "STATUS_COUNT", "TRANSLATOR",
+    # "RTFOLLOWERS", "FRIENDS", "FOLLOWERS", "LANGUAGE", "GEO_ENABLED", ""]])
     model.fit(df[["SENTIMENT", "WORD_COUNT", "EMOJI_COUNT"]])
 
     df['CLUSTER'] = df.apply(
@@ -286,63 +288,60 @@ def k_means_prediction(df):
     print(df.head()[['CONTENT', "CLUSTER"]])
 
 
-def tweetLaninLang(tweetLang, lang):
+def tweetlang_in_lang(tweet_lang, lang):
+    # print(str(tweet_lang) + " in " + str(lang) + " " + str(tweet_lang in lang))
     try:
-        return tweetLang in lang
+        return tweet_lang in lang
     except TypeError:
         return False
 
 
 def is_tweet_language_profile_language(df):
     df['TWEET_LANG_SAME_PROFILE_LANG'] = df.apply(
-        lambda x: tweetLaninLang(x["CONTENT_LANGUAGE"], x["LANGUAGE"]), axis=1)
+        lambda x: tweetlang_in_lang(x["CONTENT_LANGUAGE"], x["LANGUAGE"]), axis=1)
 
     print('-------Tweet language same as Profile Language--------')
     print(df.head()[['CONTENT', "TWEET_LANG_SAME_PROFILE_LANG"]])
 
 
-def getTimeDifference(firstTime, secondTime):
-    FMT = '%Y-%m-%d %H:%M:%S.%f0000'
-    print(firstTime + " - " + secondTime)
-    return datetime.strptime(firstTime, FMT) - datetime.strptime(secondTime, FMT)
-
-
 def time_after_profile_creation(df):
-    df['TIME_AFTER_PFP_CREATION'] = df.apply(
-        lambda x: getTimeDifference(x["CREATEDAT"], x["OPEN_DATE"]), axis=1)
+    FMT = "%Y-%m-%d %H:%M:%S.%f0000"
 
-    print('-------Tweet language same as Profile Language--------')
+    df['TIME_AFTER_PFP_CREATION'] = df.apply(
+        lambda x: datetime.strptime(x["CREATEDAT"], FMT) - datetime.strptime(x["OPEN_DATE"], FMT), axis=1)
+
+    print('-------Time after Profile Creation--------')
     print(df.head()[['CONTENT', "TIME_AFTER_PFP_CREATION"]])
 
 
 def main():
-    df = read_from_csv(r"C:\Users\myron\Downloads\test-data.csv")
-    # df = read_from_csv(r"C:\Users\myron\Downloads\results.csv")
+    # df = read_from_csv(r"C:\Users\myron\Downloads\test-data.csv")
+    df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
 
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
-    # detect_language(df)  # expensive task
-    # escape_HTML(df)  # not sure if needed
-    # remove_mentions(df)
-    # count_emojis(df)
-    # remove_emojis(df)
-    # extract_URLs(df)
-    # remove_apostrophes(df)
-    # remove_punctuation(df)
-    # resolve_slang_and_abbreviations(df)
-    # # checkSpelling(df)  # expensive task
-    # remove_stop_word(df)
-    # lemmatize(df)
-    # to_lower(df)
-    # get_sentiment(df)
-    # facial_recognition(df)
-    # estimate_age(df)
-    # k_means_prediction(df)
-    # is_tweet_language_profile_language(df)
-    # time_after_profile_creation(df)
+    detect_language(df)  # expensive task
+    escape_HTML(df)  # not sure if needed
+    remove_mentions(df)
+    count_emojis(df)
+    remove_emojis(df)
+    extract_URLs(df)
+    remove_apostrophes(df)
+    remove_punctuation(df)
+    resolve_slang_and_abbreviations(df)
+    # checkSpelling(df)  # expensive task
+    remove_stop_word(df)
+    lemmatize(df)
+    to_lower(df)
+    get_sentiment(df)
+    facial_recognition(df)
+    estimate_age(df)
+    k_means_prediction(df)
+    is_tweet_language_profile_language(df)
+    time_after_profile_creation(df)
 
-    # df.to_csv(r'results.csv')
+    df.to_csv(r'results.csv')
 
 if __name__ == '__main__':
     main()

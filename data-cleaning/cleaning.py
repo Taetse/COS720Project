@@ -40,7 +40,7 @@ def translator(user_string):
     user_words = user_string.split(" ")
 
     # File path which consists of Abbreviations.
-    file_name = "slang.txt"
+    file_name = "data-cleaning\slang.txt"
     with open(file_name, "r") as abbreviations_csv:
         abbreviation_reader = csv.reader(abbreviations_csv, delimiter="=")
         abbreviations = {rows[0]: rows[1] for rows in abbreviation_reader}
@@ -221,17 +221,18 @@ def url_to_image(url):
 def detect_face(url):
     try:
         image = url_to_image(url)
+        grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        face_cascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
+        faces = face_cascade.detectMultiScale(grayscale_image)
+        if len(faces) > 0:
+            return True
+        else:
+            return False
     except urllib.error.HTTPError:
         return False
     except urllib.error.URLError:
         return False
-
-    grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    face_cascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
-    faces = face_cascade.detectMultiScale(grayscale_image)
-    if len(faces) > 0:
-        return True
-    else:
+    except:
         return False
 
 
@@ -249,6 +250,8 @@ def get_estimate_age(url):
     except urllib.error.HTTPError:
         return False
     except urllib.error.URLError:
+        return False
+    except:
         return False
 
     agender = PyAgender()
@@ -282,12 +285,12 @@ def k_means_prediction(df):
 
 
 def main():
-    df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
-    
+    df = read_from_csv(r"C:\Users\myron\Downloads\shortened-data.csv")
+
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
-    # detect_language(df)  #expensive task
+    detect_language(df)  # expensive task
     escape_HTML(df)  # not sure if needed
     remove_mentions(df)
     count_emojis(df)
@@ -301,9 +304,11 @@ def main():
     lemmatize(df)
     to_lower(df)
     get_sentiment(df)
-    # facial_recognition(df)
-    # estimate_age(df)
+    facial_recognition(df)
+    estimate_age(df)
     k_means_prediction(df)
+
+    df.to_csv(r'results.csv')
 
 
 if __name__ == '__main__':

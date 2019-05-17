@@ -265,7 +265,7 @@ def get_estimate_age(url):
 
 
 def estimate_age(df):
-    df['ESTIMATE_AGE'] = df.loc[df['PFP_CONTAIN_FACE'] == 'True']['PROFILE_IMAGE'].apply(
+    df['ESTIMATE_AGE'] = df.loc[df['PFP_CONTAIN_FACE']]['PROFILE_IMAGE'].apply(
         lambda x: get_estimate_age(x))
 
     print('-------Estimate Age--------')
@@ -316,34 +316,33 @@ def time_after_profile_creation(df):
 
 
 def main():
-    # df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
-    df = read_from_csv(r"C:\Users\myron\Downloads\shortened-data.csv")
+    df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
+    # df = read_from_csv(r"C:\Users\myron\Downloads\results.csv")
 
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
-    detect_language(df)  # expensive task
-    escape_HTML(df)  # not sure if needed
-    remove_mentions(df)
-    count_emojis(df)
-    remove_emojis(df)
-    extract_URLs(df)
-    remove_apostrophes(df)
-    remove_punctuation(df)
-    resolve_slang_and_abbreviations(df)
-    # checkSpelling(df)  # expensive task
-    remove_stop_word(df)
-    lemmatize(df)
-    to_lower(df)
-    get_sentiment(df)
-    facial_recognition(df)
-    estimate_age(df)
-    k_means_prediction(df)
-    is_tweet_language_profile_language(df)
-    time_after_profile_creation(df)
+    # detect_language(df)  # expensive task
+    # escape_HTML(df)  # not sure if needed
+    # remove_mentions(df)
+    # count_emojis(df)
+    # remove_emojis(df)
+    # extract_URLs(df)
+    # remove_apostrophes(df)
+    # remove_punctuation(df)
+    # resolve_slang_and_abbreviations(df)
+    # # checkSpelling(df)  # expensive task
+    # remove_stop_word(df)
+    # lemmatize(df)
+    # to_lower(df)
+    # get_sentiment(df)
+    # facial_recognition(df)
+    # estimate_age(df)
+    # k_means_prediction(df)
+    # is_tweet_language_profile_language(df)
+    # time_after_profile_creation(df)
 
     # df.to_csv(r'results.csv')
-
 
 if __name__ == '__main__':
     main()

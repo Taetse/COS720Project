@@ -73,13 +73,60 @@ def sentiment_retweet_count(df):
     return out
 
 def sentiment_word_count_distribution(df):
-    print("NOT IMPLEMENTED")
+    out = {
+        "positive" : 0,
+        "negative": 0
+    }
+    for row in df.head().iterrows():
+        if row[1]['SENTIMENT'] > 0:
+            out['positive'] += row[1]['WORD_COUNT']
+        elif row[1]['SENTIMENT'] < 0:
+            out['negative'] += row[1]['WORD_COUNT']
+    print(out)
+    return out
 
 def sentiment_emoji_count_distribution(df):
-    print("NOT IMPLEMENTED")
+    out = {
+        "positive" : 0,
+        "negative": 0
+    }
+    for row in df.head().iterrows():
+        if row[1]['SENTIMENT'] > 0:
+            out['positive'] += row[1]['EMOJI_COUNT']
+        elif row[1]['SENTIMENT'] < 0:
+            out['negative'] += row[1]['EMOJI_COUNT']
+    print(out)
+    return out
 
 def sentiment_common_word_distribution(df):
     print("NOT IMPLEMENTED")
 
 def profile_age_follower_distribution(df):
-    print("NOT IMPLEMENTED")
+    def get_profile_age(df):
+        from dateutil import parser
+        import datetime
+        def get_age(dateCreated):
+            return today.year - dateCreated.year - ((today.month, today.day) < (dateCreated.month, dateCreated.day))
+        today = datetime.date.today()
+        df['PROFILE_AGE'] = df['CREATED'].apply(
+            lambda x: get_age(parser.parse(x))
+        )
+        print(df.head()[['CREATED', "PROFILE_AGE"]])
+    print('-------Follower count--------')
+    get_profile_age(df)
+    temp = {
+        5: 0,
+        10:0,
+        15:0,
+    }
+    for row in df.head().iterrows():
+        key = 15
+        print(row[1][27])
+        age = row[1][27]
+        if age <= 5:
+            key = 5
+        elif age <= 10:
+            key = 10
+        temp[key] += row[1][12]
+    print(temp)
+    return temp

@@ -7,8 +7,9 @@ import urllib.request
 import cv2 as cv 
 import numpy as np
 import pandas as pd
-from pyagender import PyAgender
+# from pyagender import PyAgender
 from textblob import TextBlob
+import eda
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
@@ -196,75 +197,79 @@ def get_sentiment(df):
     print(df.head()[['CONTENT', "SENTIMENT"]])
 
 
-def url_to_image(url):
-    resp = urllib.request.urlopen(url)
-    image = np.asarray(bytearray(resp.read()), dtype="uint8")
-    image = cv.imdecode(image, cv.IMREAD_COLOR)
+# def url_to_image(url):
+#     resp = urllib.request.urlopen(url)
+#     image = np.asarray(bytearray(resp.read()), dtype="uint8")
+#     image = cv.imdecode(image, cv.IMREAD_COLOR)
 
-    return image
-
-
-def detect_face(url):
-    try:
-        image = url_to_image(url)
-    except urllib.error.HTTPError:
-        return False
-
-    grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    faceCascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
-    faces = faceCascade.detectMultiScale(grayscale_image)
-    if len(faces) > 0:
-        return True
-    else:
-        return False
+#     return image
 
 
-def facial_recognition(df):
-    df['PFP_CONTAIN_FACE'] = df['PROFILE_IMAGE'].apply(
-        lambda x: detect_face(x))
+# def detect_face(url):
+#     try:
+#         image = url_to_image(url)
+#     except urllib.error.HTTPError:
+#         return False
 
-    print('-------Face Recognition--------')
-    print(df.head()[['CONTENT', "PFP_CONTAIN_FACE"]])
+#     grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+#     faceCascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
+#     faces = faceCascade.detectMultiScale(grayscale_image)
+#     if len(faces) > 0:
+#         return True
+#     else:
+#         return False
 
 
-def get_estimate_age(url):
-    agender = PyAgender()
-    image = url_to_image(url)
-    faces = agender.detect_genders_ages(image)
-    return round(faces[0]['age'])
+# def facial_recognition(df):
+#     df['PFP_CONTAIN_FACE'] = df['PROFILE_IMAGE'].apply(
+#         lambda x: detect_face(x))
+
+#     print('-------Face Recognition--------')
+#     print(df.head()[['CONTENT', "PFP_CONTAIN_FACE"]])
 
 
-def estimate_age(df):
-    df['ESTIMATE_AGE'] = df.loc[df['PFP_CONTAIN_FACE'] == 'True']['PROFILE_IMAGE'].apply(
-        lambda x: get_estimate_age(x))
+# def get_estimate_age(url):
+#     agender = PyAgender()
+#     image = url_to_image(url)
+#     faces = agender.detect_genders_ages(image)
+#     return round(faces[0]['age'])
 
-    print('-------Estimate Age--------')
-    print(df.head()[['CONTENT', "ESTIMATE_AGE"]])
+
+# def estimate_age(df):
+#     df['ESTIMATE_AGE'] = df.loc[df['PFP_CONTAIN_FACE'] == 'True']['PROFILE_IMAGE'].apply(
+#         lambda x: get_estimate_age(x))
+
+#     print('-------Estimate Age--------')
+#     print(df.head()[['CONTENT', "ESTIMATE_AGE"]])
 
 
 def main():
-    df = read_from_csv(r"D:\UP\COS\720\repo\shortened-data.csv")
+    dfTweets = read_from_csv(r"D:\UP\COS\720\repo\shortened-data.csv")
+    dfUsers = read_from_csv(r"D:\UP\COS\720\repo\user-data.csv")
     
     print("--- Print the Head of the data ---")
-    print(df.head()["CONTENT"])
+    print(dfTweets.head()["CONTENT"])
 
-    # detect_language(df)
-    escape_HTML(df) # not sure if needed
-    remove_mentions(df)
-    count_emojis(df)
-    remove_emojis(df)
-    extract_URLs(df)
-    remove_apostrophes(df)
-    remove_punctuation(df)
-    resolve_slang_and_abbreviations(df)
-    # checkSpelling(df) # expensive task
-    remove_stop_word(df)
-    lemmatize(df)
-    to_lower(df)
-    get_sentiment(df)
-    facial_recognition(df)
-    estimate_age(df)
+    # detect_language(dfTweets)
+    escape_HTML(dfTweets) # not sure if needed
+    remove_mentions(dfTweets)
+    count_emojis(dfTweets)
+    remove_emojis(dfTweets)
+    extract_URLs(dfTweets)
+    remove_apostrophes(dfTweets)
+    remove_punctuation(dfTweets)
+    resolve_slang_and_abbreviations(dfTweets)
+    # checkSpelling(dfTweets) # expensive task
+    remove_stop_word(dfTweets)
+    lemmatize(dfTweets)
+    to_lower(dfTweets)
+    get_sentiment(dfTweets)
+    # facial_recognition(dfTweets)
+    # estimate_age(dfTweets)
 
+    eda.sentiment_word_count_distribution(dfTweets)
+    # userdata calculations
+    # eda.profile_age_follower_distribution(dfUsers)
 
 if __name__ == '__main__':
     main()

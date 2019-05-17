@@ -269,23 +269,23 @@ def main():
 
     #EDA TWEETS
 
-    df = read_from_csv(r"G:\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
+    df = read_from_csv(r"C:\Users\myron\Downloads\results.csv")
 
-    commonWords = eda.most_common_words(dfTweets)
-    print(words)
+    # commonWords = eda.most_common_words(df)
+    # print(commonWords)
     print(eda.friends_followers_profile_picture(df))
-    print(eda.count_non_matching_languages(df))
-    print(eda.sentiment_frequency(df))
-    print(eda.sentiment_retweet_count(df))
-    print(eda.sentiment_word_count_distribution(df))
-    print(eda.sentiment_emoji_count_distribution(df))
+    # print(eda.count_non_matching_languages(df))
+    # print(eda.sentiment_frequency(df))
+    # print(eda.sentiment_retweet_count(df))
+    # print(eda.sentiment_word_count_distribution(df))
+    # print(eda.sentiment_emoji_count_distribution(df))
 
-    words = []
-    for w in commonWords:
-        words.append(w[0])
+    # words = []
+    # for w in commonWords:
+    #     words.append(w[0])
 
-    print(eda.sentiment_common_word_distribution(df, words))
-    print(eda.profile_age_follower_distribution(df))
+    # print(eda.sentiment_common_word_distribution(df, words))
+    # print(eda.profile_age_follower_distribution(df))
 
 if __name__ == '__main__':
     main()

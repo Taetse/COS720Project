@@ -1,6 +1,7 @@
-import collections as coll
-
+from collections import Counter
 # Tweets
+
+
 def most_common_words(df):
     all_words = []
     for row in df.iterrows():
@@ -8,49 +9,56 @@ def most_common_words(df):
         words = content.split()
         for word in words:
             all_words.append(word.lower())
-    
-    return coll.Counter(words).most_common(25)
+
+    return Counter(all_words).most_common(25)
 
 # Tweets
+
+
 def friends_followers_profile_picture(df):
     count = 0
     out = {
-        "friends_face" : 0,
-        "friends_no_face" : 0,
-        "followers_face" : 0,
-        "followers_no_face" : 0
+        "friends_face": 0,
+        "friends_no_face": 0,
+        "followers_face": 0,
+        "followers_no_face": 0
     }
     for row in df.iterrows():
         count += 1
-        if row[1]['PFP_CONTAIN_FACE'] == True:
-            out['friends_face'] += row[1]['FRIENDS_COUNT']
-            out['followers_face'] += row[1]['FOLLOWERS_COUNT']
-        else:
-            out['friends_no_face'] += row[1]['FRIENDS_COUNT']
-            out['followers_no_face'] += row[1]['FOLLOWERS_COUNT']
+        if row[1]['FRIENDS'].isdigit() and row[1]['FOLLOWERS'].isdigit():
+            if row[1]['PFP_CONTAIN_FACE'] == True:
+                out['friends_face'] += int(row[1]['FRIENDS'])
+                out['followers_face'] += int(row[1]['FOLLOWERS'])
+            else:
+                out['friends_no_face'] += int(row[1]['FRIENDS'])
+                out['followers_no_face'] += int(row[1]['FOLLOWERS'])
 
     return out
 
 # Tweets
+
+
 def count_non_matching_languages(df):
     out = {
-        "matching" : 0,
-        "non-matching" : 0
+        "matching": 0,
+        "non-matching": 0
     }
     for row in df.iterrows():
         if row[1]['LANGUAGE'] == row[1]['CONTENT_LANGUAGE']:
             out['matching'] += 1
         else:
             out['non-matching'] += 1
-    
+
     return out
 
 # Tweets
+
+
 def sentiment_frequency(df):
     out = {
-        "positive" : 0,
-        "negative" : 0,
-        "no_content" : 0
+        "positive": 0,
+        "negative": 0,
+        "no_content": 0
     }
     for row in df.iterrows():
         if row[1]['SENTIMENT'] == 1:
@@ -63,9 +71,11 @@ def sentiment_frequency(df):
     return out
 
 # Tweets
+
+
 def sentiment_retweet_count(df):
     out = {
-        "positive" : 0,
+        "positive": 0,
         "negative": 0
     }
     for row in df.iterrows():
@@ -77,6 +87,8 @@ def sentiment_retweet_count(df):
     return out
 
 # Tweets
+
+
 def sentiment_word_count_distribution(df):
     out = {}
     for row in df.iterrows():
@@ -96,6 +108,8 @@ def sentiment_word_count_distribution(df):
     return out
 
 # Tweets
+
+
 def sentiment_emoji_count_distribution(df):
     out = {}
     for row in df.iterrows():
@@ -115,6 +129,8 @@ def sentiment_emoji_count_distribution(df):
     return out
 
 # Tweets
+
+
 def sentiment_common_word_distribution(df, words):
     out = {}
     for row in df.iterrows():
@@ -124,23 +140,26 @@ def sentiment_common_word_distribution(df, words):
                 if row[1]['SENTIMENT'] > 0:
                     if word in out:
                         out[word]['positive'] += 1
-                    else: 
+                    else:
                         out[word] = {}
                         out[word]['positive'] += 1
                 elif row[1]['SENTIMENT'] < 0:
                     if word in out:
                         out[word]['negative'] += 1
-                    else: 
+                    else:
                         out[word] = {}
                         out[word]['negative'] += 1
 
     return out
 
 # Tweets
+
+
 def profile_age_follower_distribution(df):
     def get_profile_age(df):
         from dateutil import parser
         import datetime
+
         def get_age(dateCreated):
             return today.year - dateCreated.year - ((today.month, today.day) < (dateCreated.month, dateCreated.day))
         today = datetime.date.today()
@@ -152,8 +171,8 @@ def profile_age_follower_distribution(df):
     get_profile_age(df)
     temp = {
         5: 0,
-        10:0,
-        15:0,
+        10: 0,
+        15: 0,
     }
     for row in df.iterrows():
         key = 15

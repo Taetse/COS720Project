@@ -267,7 +267,7 @@ def main():
     # facial_recognition(dfTweets)
     # estimate_age(dfTweets)
 
-    eda.sentiment_word_count_distribution(dfTweets)
+    eda.sentiment_emoji_count_distribution(dfTweets)
     # userdata calculations
     # eda.profile_age_follower_distribution(dfUsers)
 

@@ -90,7 +90,7 @@ def sentiment_emoji_count_distribution(df):
         "positive" : 0,
         "negative": 0
     }
-    for row in df.head().iterrows():
+    for row in df.iterrows():
         if row[1]['SENTIMENT'] > 0:
             out['positive'] += row[1]['EMOJI_COUNT']
         elif row[1]['SENTIMENT'] < 0:
@@ -119,9 +119,8 @@ def profile_age_follower_distribution(df):
         10:0,
         15:0,
     }
-    for row in df.head().iterrows():
+    for row in df.iterrows():
         key = 15
-        print(row[1][27])
         age = row[1][27]
         if age <= 5:
             key = 5

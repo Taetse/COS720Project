@@ -314,16 +314,16 @@ def estimate_age(df):
 
 def k_means_prediction(df):
     # Declaring Model
-    model = KMeans(n_clusters=2)
+    model = KMeans(n_clusters=7)
     # Fitting Model
-    model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "ESTIMATE_AGE", "WORD_COUNT", "EMOJI_COUNT", "CONTENT_LANGUAGE",
-                  "TIME_AFTER_PFP_CREATION", "TWEET_LANG_SAME_PROFILE_LANG", "SOURCE", "IS_DEFAULT_PROFILE", "STATUS_COUNT", "TRANSLATOR",
-                  "RTFOLLOWERS", "FRIENDS", "FOLLOWERS", "LANGUAGE", "GEO_ENABLED"]])
-    # model.fit(df[["SENTIMENT", "WORD_COUNT", "EMOJI_COUNT"]])
-    # [[x["SENTIMENT"], x["PFP_CONTAIN_FACE"], x["ESTIMATE_AGE"],x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"],x["CONTENT_LANGUAGE"], x["TIME_AFTER_PFP_CREATION"], x["TWEET_LANG_SAME_PROFILE_LANG"],x["SOURCE"], x["IS_DEFAULT_PROFILE"], x["STATUS_COUNT"],x["TRANSLATOR"], x["RTFOLLOWERS"], x["FRIENDS"],x["FOLLOWERS"], x["LANGUAGE"], x["GEO_ENABLED"] ]]
+    model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "WORD_COUNT", "EMOJI_COUNT",
+                  "TWEET_LANG_SAME_PROFILE_LANG", "IS_DEFAULT_PROFILE", "STATUS_COUNT", "TRANSLATOR",
+                  "RTFOLLOWERS", "FRIENDS", "FOLLOWERS", "GEO_ENABLED"]])
+    # model.fit(df[["SENTIMENT", "WORD_COUNT", "EMOJI_COUNT", "TWEET_LANG_SAME_PROFILE_LANG"]])
     df['CLUSTER'] = df.apply(
-        lambda x: model.predict([[x["SENTIMENT"], x["PFP_CONTAIN_FACE"], x["ESTIMATE_AGE"], x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"], x["CONTENT_LANGUAGE"], x["TIME_AFTER_PFP_CREATION"], x["TWEET_LANG_SAME_PROFILE_LANG"], x["SOURCE"], x["IS_DEFAULT_PROFILE"], x["STATUS_COUNT"], x["TRANSLATOR"], x["RTFOLLOWERS"], x["FRIENDS"], x["FOLLOWERS"], x["LANGUAGE"], x["GEO_ENABLED"]]]), axis=1)
-
+        lambda x: model.predict([[x["SENTIMENT"], x["PFP_CONTAIN_FACE"], x["WORD_COUNT"], x["EMOJI_COUNT"], x["TWEET_LANG_SAME_PROFILE_LANG"], x["IS_DEFAULT_PROFILE"], x["STATUS_COUNT"], x["TRANSLATOR"], x["RTFOLLOWERS"], x["FRIENDS"], x["FOLLOWERS"], x["GEO_ENABLED"]]]), axis=1)
+    # df['CLUSTER'] = df.apply(
+    #     lambda x: model.predict([[x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"], x["TWEET_LANG_SAME_PROFILE_LANG"]]]), axis=1)
     print('-------K Means Clusters--------')
     print(df.head()[['CONTENT', "CLUSTER"]])
 
@@ -402,14 +402,14 @@ def main():
     lemmatize(df)
     word_count(df)
     get_sentiment(df)
-    # facial_recognition(df)
-    # estimate_age(df)
+    facial_recognition(df)
+    estimate_age(df)
     is_tweet_language_profile_language(df)
     time_after_profile_creation(df)
     is_phising_site(df)
-    # k_means_prediction(df)
+    k_means_prediction(df)
 
-    df.to_csv(r'results_shortened-facial.csv')
+    # df.to_csv(r'results_shortened-facial.csv')
 
 
 if __name__ == '__main__':

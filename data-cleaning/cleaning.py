@@ -79,6 +79,14 @@ def lemmatize(df):
     print(df.head()['CONTENT'])
 
 
+def remove_RT(df):
+    print('-------Remove RT--------')
+    df["CONTENT"] = df["CONTENT"].apply(
+        lambda x: "".join([word+" " if word != "RT" else "" for word in x.split()])
+    )
+    print(df.head()['CONTENT'])
+
+
 def remove_mentions(df):
     tag_pattern = re.compile(r'@[A-Za-z0-9]+')
     df['CONTENT'] = df['CONTENT'].apply(
@@ -87,10 +95,17 @@ def remove_mentions(df):
     print(df.head()['CONTENT'])
 
 
-def detect_language(df):
+def get_language(x):
     from langdetect import detect
+    try:
+        return detect(x)
+    except:
+        return "NULL"
+
+
+def detect_language(df):
     df["CONTENT_LANGUAGE"] = df['CONTENT'].apply(
-        lambda x: detect(x))
+        lambda x: get_language(x))
 
     print('-------Detect Content Language--------')
     print(df.head()[['CONTENT', "CONTENT_LANGUAGE"]])
@@ -117,19 +132,33 @@ def construct_emoji_pattern():
                       "]+", flags=re.UNICODE)
 
 
+def get_emoji(x):
+    try:
+        emoji_pattern = construct_emoji_pattern()
+        return len(emoji_pattern.findall(x))
+    except:
+        return 0
+
+
 def count_emojis(df):
-    emoji_pattern = construct_emoji_pattern()
     df['EMOJI_COUNT'] = df['CONTENT'].apply(
-        lambda x: len(emoji_pattern.findall(x)))
+        lambda x: get_emoji(x))
 
     print('-------Emoji Count--------')
     print(df.head()[['CONTENT', "EMOJI_COUNT"]])
 
 
+def get_remove_emoji(x):
+    try:
+        emoji_pattern = construct_emoji_pattern()
+        return emoji_pattern.sub('', x)
+    except:
+        return ""
+
+
 def remove_emojis(df):
-    emoji_pattern = construct_emoji_pattern()
     df['CONTENT'] = df['CONTENT'].apply(
-        lambda x: emoji_pattern.sub('', x))
+        lambda x: get_remove_emoji(x))
 
     print('-------Remove Emojis--------')
     print(df.head()['CONTENT'])
@@ -315,11 +344,17 @@ def is_tweet_language_profile_language(df):
     print(df.head()[['CONTENT', "TWEET_LANG_SAME_PROFILE_LANG"]])
 
 
-def time_after_profile_creation(df):
+def get_time(create_time, post_time):
     FMT = "%Y-%m-%d %H:%M:%S.%f0000"
+    try:
+        return datetime.strptime(create_time, FMT) - datetime.strptime(post_time, FMT)
+    except:
+        return -1
 
+
+def time_after_profile_creation(df):
     df['TIME_AFTER_PFP_CREATION'] = df.apply(
-        lambda x: datetime.strptime(x["CREATEDAT"], FMT) - datetime.strptime(x["OPEN_DATE"], FMT), axis=1)
+        lambda x: get_time(x["CREATEDAT"], x["OPEN_DATE"]), axis=1)
 
     print('-------Time after Profile Creation--------')
     print(df.head()[['CONTENT', "TIME_AFTER_PFP_CREATION"]])
@@ -356,8 +391,8 @@ def is_phising_site(df):
 
 
 def main():
-    # df = read_from_csv(r"C:\Users\myron\Downloads\test-data.csv")
-    df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
+    df = read_from_csv(r"C:\Users\myron\Downloads\shortened-data.csv")
+    # df = read_from_csv(r"C:\Users\myron\Downloads\bigdata-utf8.csv")
 
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
@@ -370,19 +405,20 @@ def main():
     extract_URLs(df)
     remove_apostrophes(df)
     remove_punctuation(df)
+    remove_RT(df)
     resolve_slang_and_abbreviations(df)
-    # checkSpelling(df)  # expensive task
     remove_stop_word(df)
     lemmatize(df)
     word_count(df)
     get_sentiment(df)
     facial_recognition(df)
     estimate_age(df)
-    k_means_prediction(df)
     is_tweet_language_profile_language(df)
     time_after_profile_creation(df)
+    # k_means_prediction(df)
 
-    df.to_csv(r'results.csv')
+    df.to_csv(r'results_shortened.csv')
+
 
 
 if __name__ == '__main__':

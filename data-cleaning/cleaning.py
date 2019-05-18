@@ -77,6 +77,14 @@ def lemmatize(df):
     print(df.head()['CONTENT'])
 
 
+def remove_RT(df):
+    print('-------Remove RT--------')
+    df["CONTENT"] = df["CONTENT"].apply(
+        lambda x: "".join([word+" " if word != "RT" else "" for word in x.split()])
+    )
+    print(df.head()['CONTENT'])
+
+
 def remove_mentions(df):
     tag_pattern = re.compile(r'@[A-Za-z0-9]+')
     df['CONTENT'] = df['CONTENT'].apply(
@@ -85,10 +93,17 @@ def remove_mentions(df):
     print(df.head()['CONTENT'])
 
 
-def detect_language(df):
+def get_language(x):
     from langdetect import detect
+    try:
+        return detect(x)
+    except:
+        return "NULL"
+
+
+def detect_language(df):
     df["CONTENT_LANGUAGE"] = df['CONTENT'].apply(
-        lambda x: detect(x))
+        lambda x: get_language(x))
 
     print('-------Detect Content Language--------')
     print(df.head()[['CONTENT', "CONTENT_LANGUAGE"]])
@@ -115,19 +130,33 @@ def construct_emoji_pattern():
                       "]+", flags=re.UNICODE)
 
 
+def get_emoji(x):
+    try:
+        emoji_pattern = construct_emoji_pattern()
+        return len(emoji_pattern.findall(x))
+    except:
+        return 0
+
+
 def count_emojis(df):
-    emoji_pattern = construct_emoji_pattern()
     df['EMOJI_COUNT'] = df['CONTENT'].apply(
-        lambda x: len(emoji_pattern.findall(x)))
+        lambda x: get_emoji(x))
 
     print('-------Emoji Count--------')
     print(df.head()[['CONTENT', "EMOJI_COUNT"]])
 
 
+def get_remove_emoji(x):
+    try:
+        emoji_pattern = construct_emoji_pattern()
+        return emoji_pattern.sub('', x)
+    except:
+        return ""
+
+
 def remove_emojis(df):
-    emoji_pattern = construct_emoji_pattern()
     df['CONTENT'] = df['CONTENT'].apply(
-        lambda x: emoji_pattern.sub('', x))
+        lambda x: get_remove_emoji(x))
 
     print('-------Remove Emojis--------')
     print(df.head()['CONTENT'])
@@ -315,14 +344,15 @@ def time_after_profile_creation(df):
 
 
 def main():
-    # df = read_from_csv(r"C:\Users\myron\Downloads\test-data.csv")
-    df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
+    df = read_from_csv(r"C:\Users\myron\Downloads\shortened-data.csv")
+    # df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
 
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
     detect_language(df)  # expensive task
-    escape_HTML(df)  # not sure if needed
+    # escape_HTML(df)  # not sure if needed
+    remove_RT(df)
     remove_mentions(df)
     count_emojis(df)
     remove_emojis(df)
@@ -330,7 +360,6 @@ def main():
     remove_apostrophes(df)
     remove_punctuation(df)
     resolve_slang_and_abbreviations(df)
-    # checkSpelling(df)  # expensive task
     remove_stop_word(df)
     lemmatize(df)
     to_lower(df)
@@ -342,6 +371,7 @@ def main():
     time_after_profile_creation(df)
 
     df.to_csv(r'results.csv')
+
 
 if __name__ == '__main__':
     main()

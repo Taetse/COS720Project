@@ -179,6 +179,7 @@ def sentiment_common_word_distribution(df, words):
 
 
 def profile_age_follower_distribution(df):
+    import math
     def get_profile_age(df):
         from dateutil import parser
         import datetime
@@ -186,11 +187,11 @@ def profile_age_follower_distribution(df):
         def get_age(dateCreated):
             return today.year - dateCreated.year - ((today.month, today.day) < (dateCreated.month, dateCreated.day))
         today = datetime.date.today()
-        df['PROFILE_AGE'] = df['CREATED'].apply(
+        df['PROFILE_AGE'] = df['OPEN_DATE'].apply(
             lambda x: get_age(parser.parse(x))
         )
-        print(df.head()[['CREATED', "PROFILE_AGE"]])
-    print('-------Follower count--------')
+        print('-------Follower count--------')
+        print(df.head()[['OPEN_DATE', "PROFILE_AGE"]])
     get_profile_age(df)
     temp = {
         5: 0,
@@ -198,12 +199,17 @@ def profile_age_follower_distribution(df):
         15: 0,
     }
     for row in df.iterrows():
-        key = 15
-        age = row[1][27]
-        if age <= 5:
-            key = 5
-        elif age <= 10:
-            key = 10
-        temp[key] += row[1][12]
+        folowers = 0
+        if str.isdigit(str(row[1]["FOLLOWERS"])):
+            folowers = float(row[1]["FOLLOWERS"])
+        print(folowers)
+        if math.isnan(folowers) == False:
+            key = 15
+            age = row[1]["PROFILE_AGE"]
+            if age <= 5:
+                key = 5
+            elif age <= 10:
+                key = 10
+            temp[key] += float(folowers)
     print(temp)
     return temp

@@ -237,11 +237,10 @@ def remove_apostrophes(df):
 def checkSpelling(df):
     from spellchecker import SpellChecker
     print("checking spelling")
-    spell = SpellChecker(distance=10)
+    spell = SpellChecker(distance=2) 
     df["CONTENT"] = df["CONTENT"].apply(
         lambda x: "".join([spell.correction(word)+' ' for word in x.split()])
     )
-
 
 def get_sentiment(df):
     df['SENTIMENT'] = df['CONTENT'].apply(
@@ -278,9 +277,8 @@ def detect_face(url):
 
 
 def facial_recognition(df):
-    df['PFP_CONTAIN_FACE'] = df.apply(
-        lambda x: False if x["IS_DEFAULT_PROFILE"] == 1 else detect_face(x["PROFILE_IMAGE"]), "columns"
-    )
+    df['PFP_CONTAIN_FACE'] = df['PROFILE_IMAGE'].apply(
+        lambda x: detect_face(x))
 
     print('-------Face Recognition--------')
     print(df.head()[['CONTENT', "PFP_CONTAIN_FACE"]])
@@ -305,7 +303,7 @@ def get_estimate_age(url):
 
 
 def estimate_age(df):
-    df['ESTIMATE_AGE'] = df.loc[df['PFP_CONTAIN_FACE']]['PROFILE_IMAGE'].apply(
+    df['ESTIMATE_AGE'] = df.loc[df['PFP_CONTAIN_FACE'] == 'True']['PROFILE_IMAGE'].apply(
         lambda x: get_estimate_age(x))
 
     print('-------Estimate Age--------')

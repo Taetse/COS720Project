@@ -333,11 +333,17 @@ def is_tweet_language_profile_language(df):
     print(df.head()[['CONTENT', "TWEET_LANG_SAME_PROFILE_LANG"]])
 
 
-def time_after_profile_creation(df):
+def get_time(create_time, post_time):
     FMT = "%Y-%m-%d %H:%M:%S.%f0000"
+    try:
+        return datetime.strptime(create_time, FMT) - datetime.strptime(post_time, FMT)
+    except:
+        return -1
 
+
+def time_after_profile_creation(df):
     df['TIME_AFTER_PFP_CREATION'] = df.apply(
-        lambda x: datetime.strptime(x["CREATEDAT"], FMT) - datetime.strptime(x["OPEN_DATE"], FMT), axis=1)
+        lambda x: get_time(x["CREATEDAT"], x["OPEN_DATE"]), axis=1)
 
     print('-------Time after Profile Creation--------')
     print(df.head()[['CONTENT', "TIME_AFTER_PFP_CREATION"]])
@@ -345,20 +351,20 @@ def time_after_profile_creation(df):
 
 def main():
     df = read_from_csv(r"C:\Users\myron\Downloads\shortened-data.csv")
-    # df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
+    # df = read_from_csv(r"C:\Users\myron\Downloads\bigdata-utf8.csv")
 
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
     detect_language(df)  # expensive task
-    # escape_HTML(df)  # not sure if needed
-    remove_RT(df)
+    escape_HTML(df)  # not sure if needed
     remove_mentions(df)
     count_emojis(df)
     remove_emojis(df)
     extract_URLs(df)
     remove_apostrophes(df)
     remove_punctuation(df)
+    remove_RT(df)
     resolve_slang_and_abbreviations(df)
     remove_stop_word(df)
     lemmatize(df)
@@ -366,11 +372,11 @@ def main():
     get_sentiment(df)
     facial_recognition(df)
     estimate_age(df)
-    k_means_prediction(df)
     is_tweet_language_profile_language(df)
     time_after_profile_creation(df)
+    # k_means_prediction(df)
 
-    df.to_csv(r'results.csv')
+    df.to_csv(r'results_shortened.csv')
 
 
 if __name__ == '__main__':

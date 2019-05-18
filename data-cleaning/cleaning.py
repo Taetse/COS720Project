@@ -373,11 +373,11 @@ def is_phising_links(links):
 
 
 def is_phising_site(df):
-    df['CONTAINS_PHISING'] = df["URL_LIST"].apply(
+    df['CONTAINS_PHISHING'] = df["URL_LIST"].apply(
         lambda x: is_phising_links(x))
 
-    print('-------Tweet language same as Profile Language--------')
-    print(df.head()[['CONTENT', "TWEET_LANG_SAME_PROFILE_LANG"]])
+    print('-------Contains Phishing Sites--------')
+    print(df.head()[['CONTENT', "CONTAINS_PHISHING"]])
 
 
 def main():

@@ -365,7 +365,7 @@ sb = safebrowsing.LookupAPI(apikey)
 def is_phising_links(links):
     for link in links:
         resp = sb.threat_matches_find(link)
-        if len(resp["matches"]) > 0:
+        if "matches" in resp and (len(resp["matches"]) > 0):
             return True
     return False
 

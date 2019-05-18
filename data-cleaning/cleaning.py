@@ -82,7 +82,7 @@ def lemmatize(df):
 def remove_RT(df):
     print('-------Remove RT--------')
     df["CONTENT"] = df["CONTENT"].apply(
-        lambda x: "".join([word+" " if word != "RT" else "" for word in x.split()])
+        lambda x: "".join([word + " " if word != "rt" else "" for word in x.split()])
     )
     print(df.head()['CONTENT'])
 
@@ -279,7 +279,7 @@ def detect_face(url):
 
 def facial_recognition(df):
     df['PFP_CONTAIN_FACE'] = df.apply(
-        lambda x: False if x["IS_DEFAULT_PROFILE"] else detect_face(x["PROFILE_IMAGE"]), "columns"
+        lambda x: False if x["IS_DEFAULT_PROFILE"] == 1 else detect_face(x["PROFILE_IMAGE"]), "columns"
     )
 
     print('-------Face Recognition--------')
@@ -316,13 +316,13 @@ def k_means_prediction(df):
     # Declaring Model
     model = KMeans(n_clusters=2)
     # Fitting Model
-    # model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "ESTIMATE_AGE", "WORD_COUNT", "EMOJI_COUNT", "CONTENT_LANGUAGE",
-    # "TIME_AFTER_PFP_CREATION", "TWEET_LANG_SAME_PROFILE_LANG", "SOURCE", "IS_DEFAULT_PROFILE", "STATUS_COUNT", "TRANSLATOR",
-    # "RTFOLLOWERS", "FRIENDS", "FOLLOWERS", "LANGUAGE", "GEO_ENABLED", ""]])
-    model.fit(df[["SENTIMENT", "WORD_COUNT", "EMOJI_COUNT"]])
-
+    model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "ESTIMATE_AGE", "WORD_COUNT", "EMOJI_COUNT", "CONTENT_LANGUAGE",
+                  "TIME_AFTER_PFP_CREATION", "TWEET_LANG_SAME_PROFILE_LANG", "SOURCE", "IS_DEFAULT_PROFILE", "STATUS_COUNT", "TRANSLATOR",
+                  "RTFOLLOWERS", "FRIENDS", "FOLLOWERS", "LANGUAGE", "GEO_ENABLED"]])
+    # model.fit(df[["SENTIMENT", "WORD_COUNT", "EMOJI_COUNT"]])
+    # [[x["SENTIMENT"], x["PFP_CONTAIN_FACE"], x["ESTIMATE_AGE"],x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"],x["CONTENT_LANGUAGE"], x["TIME_AFTER_PFP_CREATION"], x["TWEET_LANG_SAME_PROFILE_LANG"],x["SOURCE"], x["IS_DEFAULT_PROFILE"], x["STATUS_COUNT"],x["TRANSLATOR"], x["RTFOLLOWERS"], x["FRIENDS"],x["FOLLOWERS"], x["LANGUAGE"], x["GEO_ENABLED"] ]]
     df['CLUSTER'] = df.apply(
-        lambda x: model.predict([[x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"]]]), axis=1)
+        lambda x: model.predict([[x["SENTIMENT"], x["PFP_CONTAIN_FACE"], x["ESTIMATE_AGE"], x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"], x["CONTENT_LANGUAGE"], x["TIME_AFTER_PFP_CREATION"], x["TWEET_LANG_SAME_PROFILE_LANG"], x["SOURCE"], x["IS_DEFAULT_PROFILE"], x["STATUS_COUNT"], x["TRANSLATOR"], x["RTFOLLOWERS"], x["FRIENDS"], x["FOLLOWERS"], x["LANGUAGE"], x["GEO_ENABLED"]]]), axis=1)
 
     print('-------K Means Clusters--------')
     print(df.head()[['CONTENT', "CLUSTER"]])
@@ -387,27 +387,28 @@ def main():
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
-    detect_language(df)  # expensive task
-    escape_HTML(df)  # not sure if needed
-    remove_mentions(df)
-    count_emojis(df)
-    remove_emojis(df)
-    extract_URLs(df)
-    remove_apostrophes(df)
-    remove_punctuation(df)
-    remove_RT(df)
-    resolve_slang_and_abbreviations(df)
-    remove_stop_word(df)
-    lemmatize(df)
-    word_count(df)
-    get_sentiment(df)
+    # detect_language(df)  # expensive task
+    # # escape_HTML(df)  # not sure if needed
+    # remove_mentions(df)
+    # count_emojis(df)
+    # remove_emojis(df)
+    # extract_URLs(df)
+    # to_lower(df)
+    # remove_apostrophes(df)
+    # remove_punctuation(df)
+    # remove_RT(df)
+    # resolve_slang_and_abbreviations(df)
+    # remove_stop_word(df)
+    # lemmatize(df)
+    # word_count(df)
+    # get_sentiment(df)
     facial_recognition(df)
     estimate_age(df)
-    is_tweet_language_profile_language(df)
-    time_after_profile_creation(df)
+    # is_tweet_language_profile_language(df)
+    # time_after_profile_creation(df)
     # k_means_prediction(df)
 
-    df.to_csv(r'results_shortened.csv')
+    df.to_csv(r'results_shortened-facial.csv')
 
 
 if __name__ == '__main__':

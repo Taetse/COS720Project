@@ -303,7 +303,7 @@ def get_estimate_age(url):
 
 
 def estimate_age(df):
-    df['ESTIMATE_AGE'] = df.loc[df['PFP_CONTAIN_FACE'] == 'True']['PROFILE_IMAGE'].apply(
+    df['ESTIMATE_AGE'] = df.loc[df['PFP_CONTAIN_FACE']]['PROFILE_IMAGE'].apply(
         lambda x: get_estimate_age(x))
 
     print('-------Estimate Age--------')

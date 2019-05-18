@@ -9,6 +9,9 @@ import numpy as np
 import pandas as pd
 # from pyagender import PyAgender
 from textblob import TextBlob
+from datetime import datetime
+# import requests
+import safebrowsing
 
 from sklearn import datasets
 from sklearn.cluster import KMeans
@@ -40,7 +43,7 @@ def translator(user_string):
     user_words = user_string.split(" ")
 
     # File path which consists of Abbreviations.
-    file_name = "slang.txt"
+    file_name = "data-cleaning\slang.txt"
     with open(file_name, "r") as abbreviations_csv:
         abbreviation_reader = csv.reader(abbreviations_csv, delimiter="=")
         abbreviations = {rows[0]: rows[1] for rows in abbreviation_reader}
@@ -76,6 +79,14 @@ def lemmatize(df):
     print(df.head()['CONTENT'])
 
 
+def remove_RT(df):
+    print('-------Remove RT--------')
+    df["CONTENT"] = df["CONTENT"].apply(
+        lambda x: "".join([word + " " if word != "rt" else "" for word in x.split()])
+    )
+    print(df.head()['CONTENT'])
+
+
 def remove_mentions(df):
     tag_pattern = re.compile(r'@[A-Za-z0-9]+')
     df['CONTENT'] = df['CONTENT'].apply(
@@ -84,10 +95,17 @@ def remove_mentions(df):
     print(df.head()['CONTENT'])
 
 
-def detect_language(df):
+def get_language(x):
     from langdetect import detect
+    try:
+        return detect(x)
+    except:
+        return "NULL"
+
+
+def detect_language(df):
     df["CONTENT_LANGUAGE"] = df['CONTENT'].apply(
-        lambda x: detect(x))
+        lambda x: get_language(x))
 
     print('-------Detect Content Language--------')
     print(df.head()[['CONTENT', "CONTENT_LANGUAGE"]])
@@ -114,25 +132,39 @@ def construct_emoji_pattern():
                       "]+", flags=re.UNICODE)
 
 
+def get_emoji(x):
+    try:
+        emoji_pattern = construct_emoji_pattern()
+        return len(emoji_pattern.findall(x))
+    except:
+        return 0
+
+
 def count_emojis(df):
-    emoji_pattern = construct_emoji_pattern()
     df['EMOJI_COUNT'] = df['CONTENT'].apply(
-        lambda x: len(emoji_pattern.findall(x)))
+        lambda x: get_emoji(x))
 
     print('-------Emoji Count--------')
     print(df.head()[['CONTENT', "EMOJI_COUNT"]])
 
 
+def get_remove_emoji(x):
+    try:
+        emoji_pattern = construct_emoji_pattern()
+        return emoji_pattern.sub('', x)
+    except:
+        return ""
+
+
 def remove_emojis(df):
-    emoji_pattern = construct_emoji_pattern()
     df['CONTENT'] = df['CONTENT'].apply(
-        lambda x: emoji_pattern.sub('', x))
+        lambda x: get_remove_emoji(x))
 
     print('-------Remove Emojis--------')
     print(df.head()['CONTENT'])
 
 
-def to_lower(df):
+def word_count(df):
     df['WORD_COUNT'] = df['CONTENT'].apply(
         lambda x: len(x.split()))
 
@@ -167,11 +199,20 @@ def extract_URLs(df):
 
 
 def escape_HTML(df):
-    print("unescaping HTML chars")
     df["CONTENT"] = df["CONTENT"].apply(
         lambda x: html.unescape(x)
     )
+
+    print('-------Escape HTML Chars--------')
     print(df.head()['CONTENT'])
+
+
+def to_lower(df):
+    df["CONTENT"] = df["CONTENT"].apply(
+        lambda x: x.lower()
+    )
+    print('-------To Lower--------')
+    print(df.head()[['CONTENT']])
 
 
 def remove_punctuation(df):
@@ -201,12 +242,6 @@ def checkSpelling(df):
         lambda x: "".join([spell.correction(word)+' ' for word in x.split()])
     )
 
-def remove_RT(df):
-    print("removing RT")
-    df["CONTENT"] = df["CONTENT"].apply(
-        lambda x: "".join([word+' ' if word != 'RT' else "" for word in x.split()])
-    )
-
 def get_sentiment(df):
     df['SENTIMENT'] = df['CONTENT'].apply(
         lambda x: TextBlob(x).sentiment.polarity)
@@ -226,17 +261,18 @@ def get_sentiment(df):
 def detect_face(url):
     try:
         image = url_to_image(url)
+        grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        face_cascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
+        faces = face_cascade.detectMultiScale(grayscale_image)
+        if len(faces) > 0:
+            return True
+        else:
+            return False
     except urllib.error.HTTPError:
         return False
     except urllib.error.URLError:
         return False
-
-    grayscale_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    face_cascade = cv.CascadeClassifier(r'data-cleaning\classifier.xml')
-    faces = face_cascade.detectMultiScale(grayscale_image)
-    if len(faces) > 0:
-        return True
-    else:
+    except:
         return False
 
 
@@ -248,20 +284,22 @@ def detect_face(url):
 #     print(df.head()[['CONTENT', "PFP_CONTAIN_FACE"]])
 
 
-def get_estimate_age(url):
-    try:
-        image = url_to_image(url)
-    except urllib.error.HTTPError:
-        return False
-    except urllib.error.URLError:
-        return False
+# def get_estimate_age(url):
+#     try:
+#         image = url_to_image(url)
+#     except urllib.error.HTTPError:
+#         return False
+#     except urllib.error.URLError:
+#         return False
+#     except:
+#         return False
 
-    agender = PyAgender()
-    faces = agender.detect_genders_ages(image)
-    if len(faces) > 0:
-        return round(faces[0]['age'])
-    else:
-        return 0
+#     agender = PyAgender()
+#     faces = agender.detect_genders_ages(image)
+#     if len(faces) > 0:
+#         return round(faces[0]['age'])
+#     else:
+#         return 0
 
 
 # def estimate_age(df):
@@ -276,40 +314,99 @@ def k_means_prediction(df):
     # Declaring Model
     model = KMeans(n_clusters=2)
     # Fitting Model
-    # model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "WORD_COUNT", "EMOJI_COUNT", "CONTENT_LANGUAGE"]])
-    model.fit(df[["SENTIMENT", "WORD_COUNT", "EMOJI_COUNT"]])
-
+    model.fit(df[["SENTIMENT", "PFP_CONTAIN_FACE", "ESTIMATE_AGE", "WORD_COUNT", "EMOJI_COUNT", "CONTENT_LANGUAGE",
+                  "TIME_AFTER_PFP_CREATION", "TWEET_LANG_SAME_PROFILE_LANG", "SOURCE", "IS_DEFAULT_PROFILE", "STATUS_COUNT", "TRANSLATOR",
+                  "RTFOLLOWERS", "FRIENDS", "FOLLOWERS", "LANGUAGE", "GEO_ENABLED"]])
+    # model.fit(df[["SENTIMENT", "WORD_COUNT", "EMOJI_COUNT"]])
+    # [[x["SENTIMENT"], x["PFP_CONTAIN_FACE"], x["ESTIMATE_AGE"],x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"],x["CONTENT_LANGUAGE"], x["TIME_AFTER_PFP_CREATION"], x["TWEET_LANG_SAME_PROFILE_LANG"],x["SOURCE"], x["IS_DEFAULT_PROFILE"], x["STATUS_COUNT"],x["TRANSLATOR"], x["RTFOLLOWERS"], x["FRIENDS"],x["FOLLOWERS"], x["LANGUAGE"], x["GEO_ENABLED"] ]]
     df['CLUSTER'] = df.apply(
-        lambda x: model.predict([[x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"]]]), axis=1)
+        lambda x: model.predict([[x["SENTIMENT"], x["PFP_CONTAIN_FACE"], x["ESTIMATE_AGE"], x["SENTIMENT"], x["WORD_COUNT"], x["EMOJI_COUNT"], x["CONTENT_LANGUAGE"], x["TIME_AFTER_PFP_CREATION"], x["TWEET_LANG_SAME_PROFILE_LANG"], x["SOURCE"], x["IS_DEFAULT_PROFILE"], x["STATUS_COUNT"], x["TRANSLATOR"], x["RTFOLLOWERS"], x["FRIENDS"], x["FOLLOWERS"], x["LANGUAGE"], x["GEO_ENABLED"]]]), axis=1)
 
     print('-------K Means Clusters--------')
     print(df.head()[['CONTENT', "CLUSTER"]])
 
 
+def tweetlang_in_lang(tweet_lang, lang):
+    # print(str(tweet_lang) + " in " + str(lang) + " " + str(tweet_lang in lang))
+    try:
+        return tweet_lang in lang
+    except TypeError:
+        return False
+
+
+def is_tweet_language_profile_language(df):
+    df['TWEET_LANG_SAME_PROFILE_LANG'] = df.apply(
+        lambda x: tweetlang_in_lang(x["CONTENT_LANGUAGE"], x["LANGUAGE"]), axis=1)
+
+    print('-------Tweet language same as Profile Language--------')
+    print(df.head()[['CONTENT', "TWEET_LANG_SAME_PROFILE_LANG"]])
+
+
+def get_time(create_time, post_time):
+    FMT = "%Y-%m-%d %H:%M:%S.%f0000"
+    try:
+        return datetime.strptime(create_time, FMT) - datetime.strptime(post_time, FMT)
+    except:
+        return -1
+
+
+def time_after_profile_creation(df):
+    df['TIME_AFTER_PFP_CREATION'] = df.apply(
+        lambda x: get_time(x["CREATEDAT"], x["OPEN_DATE"]), axis=1)
+
+    print('-------Time after Profile Creation--------')
+    print(df.head()[['CONTENT', "TIME_AFTER_PFP_CREATION"]])
+
+
+apikey = 'AIzaSyAYeCUJwGYBKRdvifnR3ggtuR12t0xe3vA'
+sb = safebrowsing.LookupAPI(apikey)
+
+
+def is_phising_links(links):
+    for link in links:
+        resp = sb.threat_matches_find(link)
+        if len(resp["matches"]) > 0:
+            return True
+    return False
+
+
+def is_phising_site(df):
+    df['CONTAINS_PHISHING'] = df["URL_LIST"].apply(
+        lambda x: is_phising_links(x))
+
+    print('-------Contains Phishing Sites--------')
+    print(df.head()[['CONTENT', "CONTAINS_PHISHING"]])
+
+
 def main():
-    df = read_from_csv(r"D:\Documents\COS 720\shortened\EX\EXP_TWEETS_DETAIL\shortened-data.csv")
-    
+    df = read_from_csv(r"C:\Users\myron\Downloads\shortened-data.csv")
+    # df = read_from_csv(r"C:\Users\myron\Downloads\bigdata-utf8.csv")
+
     print("--- Print the Head of the data ---")
     print(df.head()["CONTENT"])
 
-    # detect_language(df)
-    remove_RT(df)
-    escape_HTML(df) # not sure if needed
-    remove_mentions(df)
-    count_emojis(df)
-    remove_emojis(df)
-    extract_URLs(df)
-    remove_apostrophes(df)
-    remove_punctuation(df)
-    resolve_slang_and_abbreviations(df)
-    # checkSpelling(df)  # expensive task
-    remove_stop_word(df)
-    lemmatize(df)
-    to_lower(df)
-    get_sentiment(df)
+    # detect_language(df)  # expensive task
+    # # escape_HTML(df)  # not sure if needed
+    # remove_mentions(df)
+    # count_emojis(df)
+    # remove_emojis(df)
+    # extract_URLs(df)
+    # to_lower(df)
+    # remove_apostrophes(df)
+    # remove_punctuation(df)
+    # remove_RT(df)
+    # resolve_slang_and_abbreviations(df)
+    # remove_stop_word(df)
+    # lemmatize(df)
+    # word_count(df)
+    # get_sentiment(df)
     # facial_recognition(df)
     # estimate_age(df)
-    k_means_prediction(df)
+    # is_tweet_language_profile_language(df)
+    # time_after_profile_creation(df)
+    # k_means_prediction(df)
+
+    df.to_csv(r'results_shortened-facial.csv')
 
 
 if __name__ == '__main__':

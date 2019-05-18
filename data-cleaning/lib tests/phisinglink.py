@@ -22,6 +22,6 @@ import safebrowsing
 
 apikey = 'AIzaSyAYeCUJwGYBKRdvifnR3ggtuR12t0xe3vA'
 sb = safebrowsing.LookupAPI(apikey)
-resp = sb.threat_matches_find('http://ihaveaproblem.info/')
-print(len(resp["matches"]) > 0)
+resp = sb.threat_matches_find('http://google.com/')
+print("matches" in resp and (len(resp["matches"]) > 0))
 print (resp)

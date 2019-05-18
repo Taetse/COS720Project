@@ -143,6 +143,17 @@ def emoji_count_distribution(df):
 # Tweets
 
 
+def count_phishing(df):
+    out = {'phishing': 0, 'legit': 0}
+    for row in df.iterrows():
+        if row[1]['CONTAINS_PHISHING']:
+            out['phishing'] += 1
+        else:
+            out['legit'] += 1
+
+    return out
+
+
 def sentiment_common_word_distribution(df, words):
     out = {}
     for row in df.iterrows():

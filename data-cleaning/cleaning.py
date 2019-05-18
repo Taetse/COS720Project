@@ -402,11 +402,11 @@ def main():
     lemmatize(df)
     word_count(df)
     get_sentiment(df)
-    is_phising_site(df)
     # facial_recognition(df)
     # estimate_age(df)
     is_tweet_language_profile_language(df)
     time_after_profile_creation(df)
+    is_phising_site(df)
     # k_means_prediction(df)
 
     df.to_csv(r'results_shortened-facial.csv')

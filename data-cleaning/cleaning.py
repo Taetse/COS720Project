@@ -10,6 +10,8 @@ import pandas as pd
 from pyagender import PyAgender
 from textblob import TextBlob
 from datetime import datetime
+import requests
+import safebrowsing
 
 from sklearn import datasets
 from sklearn.cluster import KMeans
@@ -197,10 +199,11 @@ def extract_URLs(df):
 
 
 def escape_HTML(df):
-    print("unescaping HTML chars")
     df["CONTENT"] = df["CONTENT"].apply(
         lambda x: html.unescape(x)
     )
+
+    print('-------Escape HTML Chars--------')
     print(df.head()['CONTENT'])
 
 
@@ -355,6 +358,26 @@ def time_after_profile_creation(df):
 
     print('-------Time after Profile Creation--------')
     print(df.head()[['CONTENT', "TIME_AFTER_PFP_CREATION"]])
+
+
+apikey = 'AIzaSyAYeCUJwGYBKRdvifnR3ggtuR12t0xe3vA'
+sb = safebrowsing.LookupAPI(apikey)
+
+
+def is_phising_links(links):
+    for link in links:
+        resp = sb.threat_matches_find(link)
+        if len(resp["matches"]) > 0:
+            return True
+    return False
+
+
+def is_phising_site(df):
+    df['CONTAINS_PHISING'] = df["URL_LIST"].apply(
+        lambda x: is_phising_links(x))
+
+    print('-------Tweet language same as Profile Language--------')
+    print(df.head()[['CONTENT', "TWEET_LANG_SAME_PROFILE_LANG"]])
 
 
 def main():

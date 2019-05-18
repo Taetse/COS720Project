@@ -10,6 +10,8 @@ import pandas as pd
 from pyagender import PyAgender
 from textblob import TextBlob
 from datetime import datetime
+import requests
+import safebrowsing
 
 from sklearn import datasets
 from sklearn.cluster import KMeans
@@ -133,7 +135,7 @@ def remove_emojis(df):
     print(df.head()['CONTENT'])
 
 
-def to_lower(df):
+def word_count(df):
     df['WORD_COUNT'] = df['CONTENT'].apply(
         lambda x: len(x.split()))
 
@@ -168,11 +170,20 @@ def extract_URLs(df):
 
 
 def escape_HTML(df):
-    print("unescaping HTML chars")
     df["CONTENT"] = df["CONTENT"].apply(
         lambda x: html.unescape(x)
     )
+
+    print('-------Escape HTML Chars--------')
     print(df.head()['CONTENT'])
+
+
+def to_lower(df):
+    df["CONTENT"] = df["CONTENT"].apply(
+        lambda x: x.lower()
+    )
+    print('-------To Lower--------')
+    print(df.head()[['CONTENT']])
 
 
 def remove_punctuation(df):
@@ -314,6 +325,36 @@ def time_after_profile_creation(df):
     print(df.head()[['CONTENT', "TIME_AFTER_PFP_CREATION"]])
 
 
+key = 'AIzaSyAYeCUJwGYBKRdvifnR3ggtuR12t0xe3vA'
+URL = "https://sb-ssl.google.com/safebrowsing/api/lookup?client=api&apikey={key}&appver=1.0&pver=3.0&url={url}"
+
+
+def is_safe(urls):
+    for url in urls:
+        response = requests.get(URL.format(key=key, url=url))
+        return response.text != 'malware'
+
+
+apikey = 'AIzaSyAYeCUJwGYBKRdvifnR3ggtuR12t0xe3vA'
+sb = safebrowsing.LookupAPI(apikey)
+
+
+def is_phising_links(links):
+    for link in links:
+        resp = sb.threat_matches_find(link)
+        if len(resp["matches"]) > 0:
+            return True
+    return False
+
+
+def is_phising_site(df):
+    df['CONTAINS_PHISING'] = df["URL_LIST"].apply(
+        lambda x: is_phising_links(x))
+
+    print('-------Tweet language same as Profile Language--------')
+    print(df.head()[['CONTENT', "TWEET_LANG_SAME_PROFILE_LANG"]])
+
+
 def main():
     # df = read_from_csv(r"C:\Users\myron\Downloads\test-data.csv")
     df = read_from_csv(r"C:\Users\myron\Downloads\Book1.csv")
@@ -333,7 +374,7 @@ def main():
     # checkSpelling(df)  # expensive task
     remove_stop_word(df)
     lemmatize(df)
-    to_lower(df)
+    word_count(df)
     get_sentiment(df)
     facial_recognition(df)
     estimate_age(df)
@@ -342,6 +383,7 @@ def main():
     time_after_profile_creation(df)
 
     df.to_csv(r'results.csv')
+
 
 if __name__ == '__main__':
     main()

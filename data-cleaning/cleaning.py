@@ -360,16 +360,6 @@ def time_after_profile_creation(df):
     print(df.head()[['CONTENT', "TIME_AFTER_PFP_CREATION"]])
 
 
-key = 'AIzaSyAYeCUJwGYBKRdvifnR3ggtuR12t0xe3vA'
-URL = "https://sb-ssl.google.com/safebrowsing/api/lookup?client=api&apikey={key}&appver=1.0&pver=3.0&url={url}"
-
-
-def is_safe(urls):
-    for url in urls:
-        response = requests.get(URL.format(key=key, url=url))
-        return response.text != 'malware'
-
-
 apikey = 'AIzaSyAYeCUJwGYBKRdvifnR3ggtuR12t0xe3vA'
 sb = safebrowsing.LookupAPI(apikey)
 
@@ -418,7 +408,6 @@ def main():
     # k_means_prediction(df)
 
     df.to_csv(r'results_shortened.csv')
-
 
 
 if __name__ == '__main__':
